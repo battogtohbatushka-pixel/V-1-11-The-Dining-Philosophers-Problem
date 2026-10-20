@@ -1,7 +1,6 @@
 # Dining-Philosophers (F.CSM302 БД1)
 
-**Хуваарилалтын код:** [КОДОО ЭНД БИЧ] · **Гишүүд:** [НЭРС]
-**Сурах бичиг:** Silberschatz, *Operating System Concepts*, Ch.7 Project 11 "The Dining-Philosophers Problem"
+
 
 ## Зорилго
 Monitor (mutex + condition variable) ашигласан Dining-Philosophers бодлогыг Pthreads-ээр хэрэгжүүлж, thinking / hungry / eating төлөв ба fork эзэмшилтийг харуулсан интерактив UI-аар дүрслэнэ.
