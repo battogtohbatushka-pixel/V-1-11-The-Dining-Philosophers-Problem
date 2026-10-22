@@ -1,0 +1,5 @@
+SUMMARY n=2 meals_each=5 total=10/10 violations=0 max_concurrent_eating=1 max_wait_ms=43 elapsed_ms=515
+SUMMARY n=3 meals_each=5 total=15/15 violations=0 max_concurrent_eating=1 max_wait_ms=86 elapsed_ms=687
+SUMMARY n=5 meals_each=5 total=25/25 violations=0 max_concurrent_eating=2 max_wait_ms=91 elapsed_ms=639
+SUMMARY n=8 meals_each=5 total=40/40 violations=0 max_concurrent_eating=4 max_wait_ms=73 elapsed_ms=536
+SUMMARY n=12 meals_each=5 total=60/60 violations=0 max_concurrent_eating=6 max_wait_ms=74 elapsed_ms=601
