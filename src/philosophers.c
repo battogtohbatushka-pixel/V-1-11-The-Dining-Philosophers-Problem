@@ -1,105 +1,165 @@
-/* Dining-Philosophers: monitor-based solution (Silberschatz, OS Concepts, Ch.7 Project 11).
- * Pthreads: 1 mutex (monitor lock) + 1 condition variable per philosopher.
- * Build: make    Run: ./philosophers -n 5 -m 3 -t 100,300 -e 100,200 -s 42
+/* Dining-Philosophers (Monitor) - Pthreads
+ * Build: make      Run: ./philosophers -n 5 -m 3 -t 100,300 -e 100,200 -s 42
+ *
+ * Санаа: philosopher бүр thread. Тэд "monitor" (нэг mutex) дотор
+ * өөрийн төлөвөө өөрчилнө. Хоёр хөрш нь идэхгүй байгаа үед л идэж эхэлнэ.
  */
 #define _POSIX_C_SOURCE 200809L
 #include <pthread.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include <time.h>
 #include <unistd.h>
 
-enum state { THINKING, HUNGRY, EATING };
-static const char *SN[] = {"thinking", "hungry", "eating"};
+#define THINKING 0
+#define HUNGRY   1
+#define EATING   2
+#define MAX_N    64
 
-static int N = 5, MEALS = 3, T0 = 100, T1 = 300, E0 = 100, E1 = 200;
-static unsigned SEED = 42;
-static int quiet = 0;
+/* Тохиргоо (command line-аар солигдоно) */
+int N = 5, MEALS = 3;                 /* philosopher-ийн тоо, хоол идэх тоо */
+int THINK_MIN = 100, THINK_MAX = 300; /* thinking хугацаа (мс) */
+int EAT_MIN = 100, EAT_MAX = 200;     /* eating хугацаа (мс) */
+unsigned SEED = 42;
+int quiet = 0;
 
-static enum state *st;
-static pthread_cond_t *self;
-static pthread_mutex_t mon = PTHREAD_MUTEX_INITIALIZER;
-static int *meals, violations = 0, maxeating = 0, cureating = 0;
-static long *maxwait_ms;
-static struct timespec t_start;
+/* Monitor-ийн өгөгдөл */
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; /* monitor-ийн түгжээ */
+pthread_cond_t  wait_cv[MAX_N];                   /* philosopher бүрийн хүлээлгийн нөхцөл */
+int state[MAX_N];                                 /* THINKING / HUNGRY / EATING */
 
-static long now_ms(void) {
-    struct timespec t; clock_gettime(CLOCK_MONOTONIC, &t);
-    return (t.tv_sec - t_start.tv_sec) * 1000 + (t.tv_nsec - t_start.tv_nsec) / 1000000;
+/* Тооллого, шалгалт */
+int meals_eaten[MAX_N];
+long max_wait[MAX_N];
+int violations = 0;      /* хөрш хоёр зэрэг идвэл нэмэгдэнэ (0 байх ёстой) */
+int eating_now = 0, max_eating = 0;
+struct timespec start_time;
+
+long now_ms(void) {
+    struct timespec t;
+    clock_gettime(CLOCK_MONOTONIC, &t);
+    return (t.tv_sec - start_time.tv_sec) * 1000 + (t.tv_nsec - start_time.tv_nsec) / 1000000;
 }
-static void logev(int i, const char *m) {
-    if (!quiet) printf("[%5ldms] P%d %s\n", now_ms(), i, m);
-}
-static void msleep(int ms) { struct timespec r = {ms / 1000, (ms % 1000) * 1000000L}; nanosleep(&r, NULL); }
-static int rnd(unsigned *s, int a, int b) { return a + (b > a ? (int)(rand_r(s) % (unsigned)(b - a + 1)) : 0); }
 
-static void test(int i) { /* called with mon held */
-    int l = (i + N - 1) % N, r = (i + 1) % N;
-    if (st[i] == HUNGRY && st[l] != EATING && st[r] != EATING) {
-        st[i] = EATING;
-        pthread_cond_signal(&self[i]);
+void say(int i, const char *text) {
+    if (!quiet) printf("[%5ldms] P%d %s\n", now_ms(), i, text);
+}
+
+void sleep_ms(int ms) {
+    struct timespec t = { ms / 1000, (ms % 1000) * 1000000L };
+    nanosleep(&t, NULL);
+}
+
+/* min..max хоорондох санамсаргүй тоо */
+int random_between(unsigned *seed, int min, int max) {
+    return min + rand_r(seed) % (max - min + 1);
+}
+
+int left(int i)  { return (i + N - 1) % N; }
+int right(int i) { return (i + 1) % N; }
+
+/* Philosopher i өлсөж байгаа бөгөөд хоёр хөрш нь идэхгүй бол идэхийг зөвшөөрнө.
+ * (lock барьсан үед дуудна) */
+void test(int i) {
+    if (state[i] == HUNGRY && state[left(i)] != EATING && state[right(i)] != EATING) {
+        state[i] = EATING;
+        pthread_cond_signal(&wait_cv[i]);   /* хүлээж байсан бол сэрээнэ */
     }
 }
-static void pickup(int i) {
-    pthread_mutex_lock(&mon);
-    st[i] = HUNGRY;
+
+/* Сэрээ авах: идэх эрхтэй болтлоо хүлээнэ */
+void pickup(int i) {
+    pthread_mutex_lock(&lock);
+    state[i] = HUNGRY;
     test(i);
-    while (st[i] != EATING) pthread_cond_wait(&self[i], &mon);
-    /* invariant check: neighbours must not be eating */
-    if (st[(i + N - 1) % N] == EATING || st[(i + 1) % N] == EATING) violations++;
-    if (++cureating > maxeating) maxeating = cureating;
-    pthread_mutex_unlock(&mon);
+    while (state[i] != EATING)
+        pthread_cond_wait(&wait_cv[i], &lock);
+
+    /* Шалгалт: хөрш нь идэж байвал алдаа */
+    if (state[left(i)] == EATING || state[right(i)] == EATING) violations++;
+    eating_now++;
+    if (eating_now > max_eating) max_eating = eating_now;
+    pthread_mutex_unlock(&lock);
 }
-static void putdown(int i) {
-    pthread_mutex_lock(&mon);
-    st[i] = THINKING; cureating--;
-    test((i + N - 1) % N);
-    test((i + 1) % N);
-    pthread_mutex_unlock(&mon);
+
+/* Сэрээ буцааж тавих: хөршүүдээс идэж чадах хүн байвал сэрээнэ */
+void putdown(int i) {
+    pthread_mutex_lock(&lock);
+    state[i] = THINKING;
+    eating_now--;
+    test(left(i));
+    test(right(i));
+    pthread_mutex_unlock(&lock);
 }
-static void *phil(void *arg) {
-    int i = (int)(long)arg; unsigned s = SEED + (unsigned)i * 7919u;
-    for (int k = 0; k < MEALS; k++) {
-        logev(i, SN[THINKING]); msleep(rnd(&s, T0, T1));
-        logev(i, SN[HUNGRY]); long w = now_ms();
+
+/* Philosopher бүрийн thread */
+void *philosopher(void *arg) {
+    int i = (int)(long)arg;
+    unsigned seed = SEED + i * 7919;   /* philosopher бүр өөр seed */
+
+    for (int meal = 0; meal < MEALS; meal++) {
+        say(i, "thinking");
+        sleep_ms(random_between(&seed, THINK_MIN, THINK_MAX));
+
+        say(i, "hungry");
+        long t0 = now_ms();
         pickup(i);
-        long waited = now_ms() - w; if (waited > maxwait_ms[i]) maxwait_ms[i] = waited;
-        logev(i, SN[EATING]); msleep(rnd(&s, E0, E1)); meals[i]++;
+        long waited = now_ms() - t0;
+        if (waited > max_wait[i]) max_wait[i] = waited;
+
+        say(i, "eating");
+        sleep_ms(random_between(&seed, EAT_MIN, EAT_MAX));
+        meals_eaten[i]++;
         putdown(i);
     }
-    logev(i, "done");
+    say(i, "done");
     return NULL;
 }
-static int parse_range(const char *a, int *lo, int *hi) {
-    return sscanf(a, "%d,%d", lo, hi) == 2 && *lo > 0 && *hi >= *lo;
+
+/* "min,max" гэсэн оролтыг уншина. Зөв бол 1 */
+int read_range(const char *text, int *min, int *max) {
+    return sscanf(text, "%d,%d", min, max) == 2 && *min > 0 && *max >= *min;
 }
-static void usage(void) {
-    fprintf(stderr, "Usage: philosophers [-n 2..64] [-m meals>=1] [-t min,max] [-e min,max] [-s seed] [-q]\n");
-}
+
 int main(int argc, char **argv) {
-    int o;
-    while ((o = getopt(argc, argv, "n:m:t:e:s:q")) != -1) {
-        switch (o) {
-        case 'n': N = atoi(optarg); if (N < 2 || N > 64) { fprintf(stderr, "Error: -n must be in 2..64\n"); return 2; } break;
-        case 'm': MEALS = atoi(optarg); if (MEALS < 1) { fprintf(stderr, "Error: -m must be >= 1\n"); return 2; } break;
-        case 't': if (!parse_range(optarg, &T0, &T1)) { fprintf(stderr, "Error: -t needs min,max with 0<min<=max (ms)\n"); return 2; } break;
-        case 'e': if (!parse_range(optarg, &E0, &E1)) { fprintf(stderr, "Error: -e needs min,max with 0<min<=max (ms)\n"); return 2; } break;
-        case 's': SEED = (unsigned)strtoul(optarg, NULL, 10); break;
-        case 'q': quiet = 1; break;
-        default: usage(); return 2;
+    int opt;
+    while ((opt = getopt(argc, argv, "n:m:t:e:s:q")) != -1) {
+        if (opt == 'n') {
+            N = atoi(optarg);
+            if (N < 2 || N > MAX_N) { fprintf(stderr, "Error: -n must be in 2..%d\n", MAX_N); return 2; }
+        } else if (opt == 'm') {
+            MEALS = atoi(optarg);
+            if (MEALS < 1) { fprintf(stderr, "Error: -m must be >= 1\n"); return 2; }
+        } else if (opt == 't') {
+            if (!read_range(optarg, &THINK_MIN, &THINK_MAX)) { fprintf(stderr, "Error: -t needs min,max with 0<min<=max (ms)\n"); return 2; }
+        } else if (opt == 'e') {
+            if (!read_range(optarg, &EAT_MIN, &EAT_MAX)) { fprintf(stderr, "Error: -e needs min,max with 0<min<=max (ms)\n"); return 2; }
+        } else if (opt == 's') {
+            SEED = (unsigned)strtoul(optarg, NULL, 10);
+        } else if (opt == 'q') {
+            quiet = 1;
+        } else {
+            fprintf(stderr, "Usage: philosophers [-n 2..64] [-m meals>=1] [-t min,max] [-e min,max] [-s seed] [-q]\n");
+            return 2;
         }
     }
-    st = calloc(N, sizeof *st); self = malloc(N * sizeof *self);
-    meals = calloc(N, sizeof *meals); maxwait_ms = calloc(N, sizeof *maxwait_ms);
-    pthread_t *th = malloc(N * sizeof *th);
-    for (int i = 0; i < N; i++) pthread_cond_init(&self[i], NULL);
-    clock_gettime(CLOCK_MONOTONIC, &t_start);
-    for (long i = 0; i < N; i++) pthread_create(&th[i], NULL, phil, (void *)i);
-    for (int i = 0; i < N; i++) pthread_join(th[i], NULL);
-    int total = 0; long mw = 0;
-    for (int i = 0; i < N; i++) { total += meals[i]; if (maxwait_ms[i] > mw) mw = maxwait_ms[i]; }
+
+    pthread_t threads[MAX_N];
+    for (int i = 0; i < N; i++) pthread_cond_init(&wait_cv[i], NULL);
+
+    clock_gettime(CLOCK_MONOTONIC, &start_time);
+    for (long i = 0; i < N; i++) pthread_create(&threads[i], NULL, philosopher, (void *)i);
+    for (int i = 0; i < N; i++) pthread_join(threads[i], NULL);
+
+    /* Дүн */
+    int total = 0;
+    long worst_wait = 0;
+    for (int i = 0; i < N; i++) {
+        total += meals_eaten[i];
+        if (max_wait[i] > worst_wait) worst_wait = max_wait[i];
+    }
     printf("SUMMARY n=%d meals_each=%d total=%d/%d violations=%d max_concurrent_eating=%d max_wait_ms=%ld elapsed_ms=%ld\n",
-           N, MEALS, total, N * MEALS, violations, maxeating, mw, now_ms());
+           N, MEALS, total, N * MEALS, violations, max_eating, worst_wait, now_ms());
+
     return (violations == 0 && total == N * MEALS) ? 0 : 1;
 }
