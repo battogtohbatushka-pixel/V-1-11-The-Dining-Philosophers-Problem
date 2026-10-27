@@ -1,9 +1,4 @@
-/* Dining-Philosophers (Monitor) - Pthreads
- * Build: make      Run: ./philosophers -n 5 -m 3 -t 100,300 -e 100,200 -s 42
- *
- * Санаа: philosopher бүр thread. Тэд "monitor" (нэг mutex) дотор
- * өөрийн төлөвөө өөрчилнө. Хоёр хөрш нь идэхгүй байгаа үед л идэж эхэлнэ.
- */
+
 #define _POSIX_C_SOURCE 200809L
 #include <pthread.h>
 #include <stdio.h>
@@ -16,22 +11,19 @@
 #define EATING   2
 #define MAX_N    64
 
-/* Тохиргоо (command line-аар солигдоно) */
-int N = 5, MEALS = 3;                 /* philosopher-ийн тоо, хоол идэх тоо */
-int THINK_MIN = 100, THINK_MAX = 300; /* thinking хугацаа (мс) */
-int EAT_MIN = 100, EAT_MAX = 200;     /* eating хугацаа (мс) */
+int N = 5, MEALS = 3;       
+int THINK_MIN = 100, THINK_MAX = 300; 
+int EAT_MIN = 100, EAT_MAX = 200;  
 unsigned SEED = 42;
 int quiet = 0;
 
-/* Monitor-ийн өгөгдөл */
-pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; /* monitor-ийн түгжээ */
-pthread_cond_t  wait_cv[MAX_N];                   /* philosopher бүрийн хүлээлгийн нөхцөл */
-int state[MAX_N];                                 /* THINKING / HUNGRY / EATING */
+pthread_mutex_t lock = PTHREAD_MUTEX_INITIALIZER; 
+pthread_cond_t  wait_cv[MAX_N];            
+int state[MAX_N];                           
 
-/* Тооллого, шалгалт */
 int meals_eaten[MAX_N];
 long max_wait[MAX_N];
-int violations = 0;      /* хөрш хоёр зэрэг идвэл нэмэгдэнэ (0 байх ёстой) */
+int violations = 0;     
 int eating_now = 0, max_eating = 0;
 struct timespec start_time;
 
@@ -50,7 +42,6 @@ void sleep_ms(int ms) {
     nanosleep(&t, NULL);
 }
 
-/* min..max хоорондох санамсаргүй тоо */
 int random_between(unsigned *seed, int min, int max) {
     return min + rand_r(seed) % (max - min + 1);
 }
@@ -58,16 +49,13 @@ int random_between(unsigned *seed, int min, int max) {
 int left(int i)  { return (i + N - 1) % N; }
 int right(int i) { return (i + 1) % N; }
 
-/* Philosopher i өлсөж байгаа бөгөөд хоёр хөрш нь идэхгүй бол идэхийг зөвшөөрнө.
- * (lock барьсан үед дуудна) */
 void test(int i) {
     if (state[i] == HUNGRY && state[left(i)] != EATING && state[right(i)] != EATING) {
         state[i] = EATING;
-        pthread_cond_signal(&wait_cv[i]);   /* хүлээж байсан бол сэрээнэ */
+        pthread_cond_signal(&wait_cv[i]); 
     }
 }
 
-/* Сэрээ авах: идэх эрхтэй болтлоо хүлээнэ */
 void pickup(int i) {
     pthread_mutex_lock(&lock);
     state[i] = HUNGRY;
@@ -75,14 +63,12 @@ void pickup(int i) {
     while (state[i] != EATING)
         pthread_cond_wait(&wait_cv[i], &lock);
 
-    /* Шалгалт: хөрш нь идэж байвал алдаа */
     if (state[left(i)] == EATING || state[right(i)] == EATING) violations++;
     eating_now++;
     if (eating_now > max_eating) max_eating = eating_now;
     pthread_mutex_unlock(&lock);
 }
 
-/* Сэрээ буцааж тавих: хөршүүдээс идэж чадах хүн байвал сэрээнэ */
 void putdown(int i) {
     pthread_mutex_lock(&lock);
     state[i] = THINKING;
@@ -92,10 +78,9 @@ void putdown(int i) {
     pthread_mutex_unlock(&lock);
 }
 
-/* Philosopher бүрийн thread */
 void *philosopher(void *arg) {
     int i = (int)(long)arg;
-    unsigned seed = SEED + i * 7919;   /* philosopher бүр өөр seed */
+    unsigned seed = SEED + i * 7919; 
 
     for (int meal = 0; meal < MEALS; meal++) {
         say(i, "thinking");
@@ -116,7 +101,6 @@ void *philosopher(void *arg) {
     return NULL;
 }
 
-/* "min,max" гэсэн оролтыг уншина. Зөв бол 1 */
 int read_range(const char *text, int *min, int *max) {
     return sscanf(text, "%d,%d", min, max) == 2 && *min > 0 && *max >= *min;
 }
@@ -151,7 +135,6 @@ int main(int argc, char **argv) {
     for (long i = 0; i < N; i++) pthread_create(&threads[i], NULL, philosopher, (void *)i);
     for (int i = 0; i < N; i++) pthread_join(threads[i], NULL);
 
-    /* Дүн */
     int total = 0;
     long worst_wait = 0;
     for (int i = 0; i < N; i++) {
