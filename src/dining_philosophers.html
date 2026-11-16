@@ -1,289 +1,1475 @@
 <!DOCTYPE html>
-<html lang="mn"><head><meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Dining Philosophers – Симулятор</title>
-<style>
-:root{
-  --bg:#f3f1fa;
-  --fg:#241f3a;
-  --mut:#6b6785;
-  --card:#ffffff;
-  --bd:#dcd8ee;
-  --think:#6c63d9;
-  --hung:#f08a24;
-  --eat:#1fa971;
-  --bad:#d64545;
-  --acc:#6c63d9;
-  box-sizing:border-box;
-  padding-top:env(safe-area-inset-top,0px);
-  padding-bottom:env(safe-area-inset-bottom,0px)
-}
-@media (prefers-color-scheme:dark)
-{:root
-  :not(
-    [data-theme="light"]
-    )
-    {color-scheme:dark;
-      --bg:#171428;
-      --fg:#ece9fa;
-      --mut:#a29fc0;
-      --card:#221e38;
-      --bd:#3a3560}
+<html lang="mn">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Dining Philosophers – Интерактив Симулятор & Код Тайлбарлагч</title>
+  <style>
+    :root {
+      --bg: #f4f3fb;
+      --fg: #1f1b36;
+      --mut: #656080;
+      --card: #ffffff;
+      --card-sub: #f8f7fc;
+      --bd: #dedaf0;
+      --think: #6359d9;
+      --think-bg: #eeecfb;
+      --hung: #e87e18;
+      --hung-bg: #fef2e4;
+      --eat: #199e68;
+      --eat-bg: #e5f7ef;
+      --bad: #d93838;
+      --bad-bg: #fdeaea;
+      --acc: #6359d9;
+      --table-wood: #f7efe2;
+      --table-rim: #d9c4a3;
+      box-sizing: border-box;
     }
-:root
-[data-theme="dark"]
-{
-  color-scheme:dark;
-  --bg:#171428;
-  --fg:#ece9fa;
-  --mut:#a29fc0;
-  --card:#221e38;
-  --bd:#3a3560}
-html{scroll-padding-top:
-  env(safe-area-inset-top,0px)}
-body{margin:0;
-  background:var(--bg);
-  color:var(--fg);
-  font:14px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif;padding:12px}
-h1{
-  font-size:19px;
-  margin:0 auto 12px;
-  max-width:1000px;
-  padding:10px 14px;
-  border-radius:12px;
-  color:#fff;
-  background:linear-gradient(120deg,#6c63d9,#1fa971)}
-.grid{
-  display:grid;
-  grid-template-columns:minmax(0,1fr);
-  gap:12px;max-width:1000px;margin:auto}
-@media(min-width:800px)
-{.grid
-  {grid-template-columns:minmax(0,1fr) minmax(0,1fr)
-  }
-}
-.card{
-  background:var(--card);
-  border:1px solid var(--bd);
-  border-radius:16px;
-  padding:14px;
-  box-shadow:0 2px 10px rgba(60,40,120,.10)}
-label{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  gap:8px;
-  margin:4px 0}
-input,
-select{
-  width:90px;
-  padding:3px 5px;
-  background:var(--bg);
-  color:var(--fg);
-  border:1px solid var(--bd);
-  border-radius:5px}
-button{
-  padding:6px 11px;
-  border:1px solid var(--bd);
-  border-radius:999px;
-  background:var(--bg);
-  color:var(--fg);
-  cursor:pointer}
-button.p{
-  background:var(--acc);
-  color:#fff;
-  border-color:var(--acc)
-}
-button:hover:not(:disabled){
-  filter:brightness(1.08)
-}
-button:disabled{
-  opacity:.45;
-  cursor:not-allowed
-}
-.err{
-  color:var(--bad);
-  min-height:18px;
-  font-size:13px
-}
-.ban{
-  display:none;
-  background:var(--bad);
-  color:#fff;
-  padding:6px 10px;
-  border-radius:6px;
-  margin-top:6px
-}
-.leg span{
-  display:inline-block;
-  margin-right:10px
-}
-.leg i{
-  display:inline-block;
-  width:11px;
-  height:11px;
-  border-radius:50%;
-  margin-right:4px;
-  vertical-align:-1px
-}
-.sc{overflow-x:auto}
-table{
-  border-collapse:collapse;
-  width:100%;font-size:13px
-}
-td,
-th{
-  padding:3px 6px;
-  border-bottom:1px solid var(--bd);
-  text-align:left
-}
-#log{
-  height:120px;
-  overflow:auto;
-  font:12px ui-monospace,monospace;
-  color:var(--mut)
-}
-svg{
-  width:100%;
-  max-width:380px;
-  display:block;
-  margin:auto
-}
-#now{
-  margin-top:8px;
-  padding:8px 10px;
-  border-radius:10px;
-  background:var(--bg);
-  border:1px solid var(--bd);
-  font-size:13px;
-  line-height:1.6
-}
-#mh{
-  font-size:12px;
-  color:var(--mut);
-  margin:2px 0 6px
-}
-summary{
-  cursor:pointer
-}
-details p{
-  margin:6px 0
-}
-.ex{
-  margin:6px 0
-  }
-</style>
+
+    @media (prefers-color-scheme: dark) {
+      :root:not([data-theme="light"]) {
+        color-scheme: dark;
+        --bg: #131122;
+        --fg: #efedf9;
+        --mut: #9e9ab8;
+        --card: #1d1a31;
+        --card-sub: #25213d;
+        --bd: #353059;
+        --think-bg: rgba(99, 89, 217, 0.2);
+        --hung-bg: rgba(232, 126, 24, 0.2);
+        --eat-bg: rgba(25, 158, 104, 0.2);
+        --bad-bg: rgba(217, 56, 56, 0.22);
+        --table-wood: #282338;
+        --table-rim: #463d63;
+      }
+    }
+
+    *, *::before, *::after {
+      box-sizing: inherit;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--fg);
+      font: 14px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      padding: 16px;
+    }
+
+    .container {
+      max-width: 1180px;
+      margin: 0 auto;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .ic {
+      width: 16px;
+      height: 16px;
+      stroke: currentColor;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+      fill: none;
+      flex-shrink: 0;
+      vertical-align: -3px;
+    }
+
+    .ic-sm {
+      width: 14px;
+      height: 14px;
+      vertical-align: -2px;
+    }
+
+    .ic-lg {
+      width: 20px;
+      height: 20px;
+      vertical-align: -4px;
+    }
+
+    .header-banner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      padding: 14px 20px;
+      border-radius: 16px;
+      color: #fff;
+      background: linear-gradient(125deg, #584ed2 0%, #2a789e 55%, #1fa971 100%);
+      box-shadow: 0 4px 16px rgba(60, 40, 120, 0.18);
+    }
+
+    .header-banner h1 {
+      font-size: 20px;
+      margin: 0;
+      font-weight: 700;
+      letter-spacing: -0.2px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .header-banner .sub {
+      font-size: 13px;
+      opacity: 0.92;
+      margin-top: 2px;
+    }
+
+    .quick-btns {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .quick-btns button {
+      background: rgba(255, 255, 255, 0.18);
+      color: #fff;
+      border: 1px solid rgba(255, 255, 255, 0.38);
+      font-weight: 600;
+      padding: 7px 14px;
+      border-radius: 999px;
+      backdrop-filter: blur(4px);
+    }
+
+    .quick-btns button:hover {
+      background: rgba(255, 255, 255, 0.3);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--bd);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 2px 10px rgba(40, 30, 90, 0.06);
+    }
+
+    .card-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .title-left {
+      display: inline-flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .story-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 10px;
+      margin-top: 10px;
+    }
+
+    .story-step {
+      background: var(--card-sub);
+      border: 1px solid var(--bd);
+      border-radius: 12px;
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+
+    .story-step .st-title {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+      font-size: 13.5px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-weight: 600;
+      font-size: 12px;
+    }
+
+    .pill.think { background: var(--think-bg); color: var(--think); }
+    .pill.hung  { background: var(--hung-bg);  color: var(--hung); }
+    .pill.eat   { background: var(--eat-bg);   color: var(--eat); }
+    .pill.bad   { background: var(--bad-bg);   color: var(--bad); }
+
+    .main-grid {
+      display: grid;
+      grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr);
+      gap: 14px;
+    }
+
+    @media (max-width: 900px) {
+      .main-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .stage-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    svg#v {
+      width: 100%;
+      max-width: 470px;
+      display: block;
+      margin: 0 auto;
+      user-select: none;
+    }
+
+    .leg {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px 14px;
+      margin-top: 8px;
+      padding: 8px 12px;
+      background: var(--card-sub);
+      border-radius: 10px;
+      font-size: 12.5px;
+      width: 100%;
+    }
+
+    .leg span {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .leg i {
+      display: inline-block;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+    }
+
+    .ban {
+      display: none;
+      width: 100%;
+      background: var(--bad);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      margin-top: 10px;
+      font-size: 13.5px;
+      line-height: 1.5;
+      box-shadow: 0 4px 14px rgba(217, 56, 56, 0.35);
+      animation: pulseBad 1.6s infinite ease-in-out;
+    }
+
+    @keyframes pulseBad {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.01); }
+    }
+
+    #now {
+      width: 100%;
+      margin-top: 8px;
+      padding: 10px 13px;
+      border-radius: 12px;
+      background: var(--card-sub);
+      border: 1px solid var(--bd);
+      font-size: 13px;
+      line-height: 1.6;
+    }
+
+    .ctrl-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin: 10px 0;
+    }
+
+    button {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 7px 13px;
+      border: 1px solid var(--bd);
+      border-radius: 999px;
+      background: var(--card-sub);
+      color: var(--fg);
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.15s ease;
+    }
+
+    button.p {
+      background: var(--acc);
+      color: #fff;
+      border-color: var(--acc);
+    }
+
+    button:hover:not(:disabled) {
+      filter: brightness(1.07);
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.45;
+      cursor: not-allowed;
+    }
+
+    .mode-switch {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .mode-card {
+      display: block;
+      width: 100%;
+      font-weight: 400;
+      line-height: 1.45;
+      color: var(--fg);
+      padding: 9px 11px;
+      border-radius: 11px;
+      border: 2px solid var(--bd);
+      background: var(--card-sub);
+      cursor: pointer;
+      text-align: left;
+      font-size: 12.5px;
+    }
+
+    .mode-card.active-mon {
+      border-color: var(--eat);
+      background: var(--eat-bg);
+    }
+
+    .mode-card.active-naive {
+      border-color: var(--bad);
+      background: var(--bad-bg);
+    }
+
+    .mode-card span { display: block; }
+
+    .mode-card b {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    #mh {
+      font-size: 12.5px;
+      color: var(--mut);
+      padding: 7px 10px;
+      border-radius: 8px;
+      background: var(--card-sub);
+      border-left: 3px solid var(--acc);
+      margin-bottom: 10px;
+    }
+
+    .code-box {
+      background: #181626;
+      color: #e6e3f5;
+      border-radius: 12px;
+      padding: 10px 12px;
+      font: 12px/1.55 ui-monospace, "Cascadia Code", Consolas, monospace;
+      overflow-x: auto;
+      border: 1px solid #332e54;
+    }
+
+    .code-step {
+      padding: 5px 8px;
+      border-radius: 6px;
+      margin: 3px 0;
+      border-left: 3px solid transparent;
+      transition: background 0.15s;
+    }
+
+    .code-step .c-comment {
+      color: #9691b8;
+      font-family: system-ui, sans-serif;
+      font-size: 11.5px;
+      display: block;
+    }
+
+    .code-step.active-think {
+      background: rgba(99, 89, 217, 0.25);
+      border-left-color: #8b82f8;
+    }
+
+    .code-step.active-hung {
+      background: rgba(232, 126, 24, 0.25);
+      border-left-color: #f7a248;
+    }
+
+    .code-step.active-eat {
+      background: rgba(25, 158, 104, 0.25);
+      border-left-color: #36d392;
+    }
+
+    .code-step.active-dead {
+      background: rgba(217, 56, 56, 0.32);
+      border-left-color: #ff6b6b;
+    }
+
+    .settings-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    label {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      padding: 3px 0;
+    }
+
+    input, select {
+      width: 85px;
+      padding: 4px 7px;
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--bd);
+      border-radius: 6px;
+      font-size: 13px;
+    }
+
+    input.bad {
+      border-color: var(--bad);
+      outline: 2px solid var(--bad);
+    }
+
+    .err {
+      color: var(--bad);
+      min-height: 18px;
+      font-size: 12.5px;
+      font-weight: 600;
+    }
+
+    .sc {
+      overflow-x: auto;
+    }
+
+    table {
+      border-collapse: collapse;
+      width: 100%;
+      font-size: 13px;
+    }
+
+    td, th {
+      padding: 6px 8px;
+      border-bottom: 1px solid var(--bd);
+      text-align: left;
+    }
+
+    th {
+      color: var(--mut);
+      font-weight: 600;
+      font-size: 12px;
+      background: var(--card-sub);
+    }
+
+    #log {
+      height: 150px;
+      overflow: auto;
+      font: 12px/1.55 ui-monospace, monospace;
+      color: var(--fg);
+      background: var(--card-sub);
+      padding: 8px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--bd);
+    }
+
+    #log div {
+      padding: 3px 0;
+      border-bottom: 1px dashed rgba(128, 128, 160, 0.16);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    summary {
+      cursor: pointer;
+      user-select: none;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+  </style>
 </head>
 <body>
-<h1>Dining-Philosophers · Monitor / Deadlock</h1>
-<details class="card" open style="max-width:1000px;margin:0 auto 12px"><summary><b>Энэ юу вэ? (энгийнээр)</b></summary>
-  <p>Хүүхдүүд дугуй ширээний ойролцоо сууж байна. Хүүхэд бүрийн хооронд 1 сэрээ (fork) байна. Хоол идэхэд <b>2 сэрээ</b> хэрэгтэй: зүүн ба баруун талынх. Хүүхдүүд ээлжлэн
-     <color:blue><b>бodно</b></color:blue> → 
-     <color:orenge><b>өlсөнө</b></color:orenge> → 
-     <color:green><b>иднэ</b></color:green>.</p><p><b>Асуудал:</b> бүгд нэгэн зэрэг зүүн сэрээгээ авбал хэн ч баруун сэрээгээ авч чадахгүй, бүгд үүрд гацна (<b>deadlock</b>).<br><b>Шийдэл (Monitor):</b> Хүүхэд хоёр хөрш нь идэхгүй байгааг шалгаад хоёр сэрээг зэрэг өгнө.</p>
+
+<svg style="display:none" aria-hidden="true">
+  <defs>
+    <symbol id="ic-utensils" viewBox="0 0 24 24">
+      <path d="M3 2v7c0 1.1.9 2 2 2h4a2 2 0 0 0 2-2V2"/>
+      <path d="M7 2v20"/>
+      <path d="M21 15V2v0a5 5 0 0 0-5 5v6c0 1.1.9 2 2 2h3Zm0 0v7"/>
+    </symbol>
+    <symbol id="ic-fork" viewBox="0 0 24 24">
+      <path d="M8 3v6a4 4 0 0 0 8 0V3"/>
+      <path d="M12 3v18"/>
+    </symbol>
+    <symbol id="ic-think" viewBox="0 0 24 24">
+      <path d="M15 14c.2-1 .7-1.7 1.5-2.5 1-.9 1.5-2.2 1.5-3.5A6 6 0 0 0 6 8c0 1 .2 2.2 1.5 3.5.7.7 1.3 1.5 1.5 2.5"/>
+      <path d="M9 18h6"/>
+      <path d="M10 22h4"/>
+    </symbol>
+    <symbol id="ic-hungry" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <polyline points="12 6 12 12 16 14"/>
+    </symbol>
+    <symbol id="ic-check" viewBox="0 0 24 24">
+      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+      <polyline points="22 4 12 14.01 9 11.01"/>
+    </symbol>
+    <symbol id="ic-alert" viewBox="0 0 24 24">
+      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/>
+      <line x1="12" y1="9" x2="12" y2="13"/>
+      <line x1="12" y1="17" x2="12.01" y2="17"/>
+    </symbol>
+    <symbol id="ic-lock" viewBox="0 0 24 24">
+      <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
+      <path d="M7 11V7a5 5 0 0 1 10 0v4"/>
+    </symbol>
+    <symbol id="ic-play" viewBox="0 0 24 24">
+      <polygon points="5 3 19 12 5 21 5 3" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-pause" viewBox="0 0 24 24">
+      <rect x="6" y="4" width="4" height="16" fill="currentColor"/>
+      <rect x="14" y="4" width="4" height="16" fill="currentColor"/>
+    </symbol>
+    <symbol id="ic-step" viewBox="0 0 24 24">
+      <polygon points="5 4 15 12 5 20 5 4" fill="currentColor"/>
+      <line x1="19" y1="5" x2="19" y2="19"/>
+    </symbol>
+    <symbol id="ic-reset" viewBox="0 0 24 24">
+      <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
+      <path d="M3 3v5h5"/>
+    </symbol>
+    <symbol id="ic-settings" viewBox="0 0 24 24">
+      <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+      <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+      <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+      <line x1="1" y1="14" x2="7" y2="14"/>
+      <line x1="9" y1="8" x2="15" y2="8"/>
+      <line x1="17" y1="16" x2="23" y2="16"/>
+    </symbol>
+    <symbol id="ic-code" viewBox="0 0 24 24">
+      <polyline points="16 18 22 12 16 6"/>
+      <polyline points="8 6 2 12 8 18"/>
+    </symbol>
+    <symbol id="ic-info" viewBox="0 0 24 24">
+      <circle cx="12" cy="12" r="10"/>
+      <line x1="12" y1="16" x2="12" y2="12"/>
+      <line x1="12" y1="8" x2="12.01" y2="8"/>
+    </symbol>
+    <symbol id="ic-table" viewBox="0 0 24 24">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <line x1="3" y1="9" x2="21" y2="9"/>
+      <line x1="3" y1="15" x2="21" y2="15"/>
+      <line x1="9" y1="9" x2="9" y2="21"/>
+    </symbol>
+    <symbol id="ic-terminal" viewBox="0 0 24 24">
+      <polyline points="4 17 10 11 4 5"/>
+      <line x1="12" y1="19" x2="20" y2="19"/>
+    </symbol>
+    <symbol id="ic-shield" viewBox="0 0 24 24">
+      <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/>
+      <polyline points="9 12 11 14 15 10"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="container">
+
+  <div class="header-banner">
+    <div>
+      <h1>
+        <svg class="ic ic-lg"><use href="#ic-utensils"/></svg>
+        Dining Philosophers — Нүдээр хараад шууд ойлгох Симулятор
+      </h1>
+      <div class="sub">Үйлдлийн систем (F.CSM302) · Код болон алгоритмын явцыг бодит цагаар харьцуулах UI</div>
+    </div>
+    <div class="quick-btns">
+      <button id="ex1">
+        <svg class="ic ic-sm"><use href="#ic-play"/></svg>
+        1. Хэвийн ажиллагаа (Monitor — Гацахгүй)
+      </button>
+      <button id="ex2">
+        <svg class="ic ic-sm"><use href="#ic-alert"/></svg>
+        2. Гацалт үүсгэх (Naive — Deadlock харах)
+      </button>
+    </div>
+  </div>
+
+  <details class="card" open>
+    <summary>
+      <svg class="ic" style="color:var(--acc)"><use href="#ic-info"/></svg>
+      <b>Энэ бодлого болон код яаж ажилладаг вэ? (Анх удаа харж буй хүнд)</b>
+    </summary>
+    <div class="story-grid">
+      <div class="story-step">
+        <b class="st-title"><svg class="ic" style="color:var(--acc)"><use href="#ic-fork"/></svg> 1. Ширээ ба Сэрээний дүрэм</b>
+        Дугуй ширээнд <b>N</b> хүн (<code>P0, P1, …</code>) сууна. Хөрш хоёр хүний дунд <b>ганцхан сэрээ</b> (<code>f0, f1, …</code>) бий. Хоол идэхийн тулд хүнд <b>зүүн + баруун 2 сэрээ хоёулаа</b> хэрэгтэй.
+      </div>
+      <div class="story-step">
+        <b class="st-title"><svg class="ic" style="color:var(--think)"><use href="#ic-reset"/></svg> 2. Амьдралын 3 төлөв</b>
+        Хүн бүр ээлжлэн:<br>
+        <span class="pill think"><svg class="ic ic-sm"><use href="#ic-think"/></svg> Бодно</span> →
+        <span class="pill hung"><svg class="ic ic-sm"><use href="#ic-hungry"/></svg> Өлсөнө</span> →
+        <span class="pill eat"><svg class="ic ic-sm"><use href="#ic-utensils"/></svg> Иднэ</span> гэсэн 3 төлвөөр эргэлдэнэ.
+      </div>
+      <div class="story-step">
+        <b class="st-title"><svg class="ic" style="color:var(--bad)"><use href="#ic-lock"/></svg> 3. Асуудал: Deadlock (Гацалт)</b>
+        Хэрэв хүн бүр <i>"Эхлээд зүүн сэрээгээ авчихъя, дараа нь баруунаа хүлээе"</i> (<b>Naive</b> код) гэвэл бүгд зэрэг өлсөх үед хүн бүр 1 сэрээ атгаад <b>үүрд гацна</b>!
+      </div>
+      <div class="story-step">
+        <b class="st-title"><svg class="ic" style="color:var(--eat)"><use href="#ic-shield"/></svg> 4. Шийдэл: Monitor (Зохицуулагч)</b>
+        C кодын <code>test(i)</code> функц зүүн ба баруун хөршийн <b>аль нь ч идэхгүй байгааг</b> шалгаад, тэгвэл л <b>2 сэрээг нэг дор</b> өгнө. Нэг сэрээ барьж хүлээх явдал байхгүй тул хэзээ ч гацахгүй.
+      </div>
+    </div>
   </details>
-<div class="grid">
-<div class="card">
-<svg id="v" viewBox="0 0 360 360" role="img" aria-label="Philosophers table"></svg>
-<div class="leg">
-  <span><i style="background:var(--think)"></i>Бодож байна</span><span><i style="background:var(--hung)"></i>Өлсөж байна (сэрээ хүлээнэ)</span><span><i style="background:var(--eat)"></i>Идэж байна</span><br><span>▬ саарал = чөлөөтэй сэрээ</span><span>▬ өнгөт, хүний хажууд = тэр хүн барьж байна</span></div>
-<div class="ban" id="dl">DEADLOCK (гацсан): хүн бүр зүүн сэрээгээ барьсан, баруун сэрээг нь хөрш нь барьж байна. Хэн ч сэрээгээ тавихгүй, хэн ч идэж чадахгүй — үүрд гацлаа. Monitor горимд ингэж гацахгүй.</div>
-<div id="clk" style="margin-top:6px;color:var(--mut)"></div>
-<div id="now" aria-live="polite"></div>
+
+  <div class="main-grid">
+
+    <div class="card stage-wrap">
+      <div class="card-title" style="width:100%">
+        <span class="title-left">
+          <svg class="ic" style="color:var(--acc)"><use href="#ic-utensils"/></svg>
+          Ширээний бодит төлөв (Хүн дээр дарж дэлгэрэнгүй харж болно)
+        </span>
+        <span id="clk" style="font-size:12.5px;color:var(--mut);white-space:nowrap">Симуляцийн цаг: 0.0 с</span>
+      </div>
+
+      <svg id="v" viewBox="0 0 420 420" role="img" aria-label="Philosophers table"></svg>
+
+      <div class="leg">
+        <span><i style="background:var(--think)"></i><svg class="ic ic-sm" style="color:var(--think)"><use href="#ic-think"/></svg> Бодож байна</span>
+        <span><i style="background:var(--hung)"></i><svg class="ic ic-sm" style="color:var(--hung)"><use href="#ic-hungry"/></svg> Өлсөж байна (хүлээж буй)</span>
+        <span><i style="background:var(--eat)"></i><svg class="ic ic-sm" style="color:var(--eat)"><use href="#ic-utensils"/></svg> Идэж байна (2 сэрээтэй)</span>
+        <span><svg class="ic ic-sm" style="color:var(--mut)"><use href="#ic-fork"/></svg> Саарал = Сул сэрээ</span>
+        <span>━━ Өнгөт зураас = Сэрээ барьсан</span>
+        <span>╌╌► Тасархай = Сэрээ хүлээж буй</span>
+      </div>
+
+      <div class="ban" id="dl">
+        <svg class="ic"><use href="#ic-lock"/></svg>
+        <b>DEADLOCK (БҮГД ГАЦЛАА!):</b> Хүн бүр зүүн талын сэрээгээ гартаа барьчихсан, баруун сэрээг нь хажуугийн хөрш нь тавихгүй хүлээж байна. Хэн ч идэж чадахгүй, хэн ч сэрээгээ тавихгүй! Дээрх <b>"1. Хэвийн ажиллагаа (Monitor)"</b> товчийг дарж гацахгүй шийдлийг хараарай.
+      </div>
+
+      <div id="now" aria-live="polite"></div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:14px">
+
+      <div class="card">
+        <div class="card-title">
+          <span class="title-left">
+            <svg class="ic" style="color:var(--acc)"><use href="#ic-settings"/></svg>
+            1. Алгоритм ба Симуляцийн удирдлага
+          </span>
+        </div>
+
+        <div class="mode-switch">
+          <button type="button" class="mode-card active-mon" id="cardMon">
+            <b><svg class="ic" style="color:var(--eat)"><use href="#ic-shield"/></svg> Monitor горим (Зөв шийдэл)</b>
+            <span>2 хөрш идээгүй үед л 2 сэрээг зэрэг өгнө → Гацахгүй</span>
+          </button>
+          <button type="button" class="mode-card" id="cardNaive">
+            <b><svg class="ic" style="color:var(--bad)"><use href="#ic-alert"/></svg> Naive горим (Алдаатай)</b>
+            <span>Зүүн сэрээгээ түрүүлж аваад барууныг хүлээнэ → Гацна</span>
+          </button>
+        </div>
+
+        <div id="mh"></div>
+
+        <div class="ctrl-bar">
+          <button class="p" id="go">
+            <svg class="ic ic-sm"><use href="#ic-play"/></svg>
+            <span>Эхлүүлэх / Шинэчлэх</span>
+          </button>
+          <button id="pz">
+            <svg class="ic ic-sm"><use href="#ic-pause"/></svg>
+            <span id="pzTxt">Түр зогсоох</span>
+          </button>
+          <button id="st" title="100 миллисекундээр 1 алхам урагшлуулж кодыг ажиглах">
+            <svg class="ic ic-sm"><use href="#ic-step"/></svg>
+            <span>+1 Алхам (100мс)</span>
+          </button>
+          <button id="rs">
+            <svg class="ic ic-sm"><use href="#ic-reset"/></svg>
+            <span>Reset</span>
+          </button>
+        </div>
+        <div class="err" id="err"></div>
+
+        <details style="margin-top:6px">
+          <summary style="font-size:13px;font-weight:600;color:var(--mut)">
+            <svg class="ic ic-sm"><use href="#ic-settings"/></svg>
+            Нарийвчилсан тохиргоо (Хүний тоо, хурд, хугацаа өөрчлөх)
+          </summary>
+          <div class="settings-grid" style="margin-top:8px">
+            <label title="Ширээнд хэдэн хүн суухыг заана (2–12)">
+              <span>Хүний тоо N (2–12):</span>
+              <input id="n" type="number" min="2" max="12" value="5">
+            </label>
+            <label>
+              <span title="Шууд хэрэгжинэ, симуляцийг дахин эхлүүлэхгүй">Хурд (×):</span>
+              <select id="spd">
+                <option value="0.5">0.5× (Удаан)</option>
+                <option value="1" selected>1× (Хэвийн)</option>
+                <option value="2">2× (Хурдан)</option>
+                <option value="5">5× (Маш хурдан)</option>
+                <option value="10">10×</option>
+              </select>
+            </label>
+            <label>
+              <span>Бодох хугацаа min / max (мс):</span>
+              <span>
+                <input id="t0" type="number" value="1000" style="width:72px">
+                <input id="t1" type="number" value="3000" style="width:72px">
+              </span>
+            </label>
+            <label>
+              <span>Идэх хугацаа min / max (мс):</span>
+              <span>
+                <input id="e0" type="number" value="1000" style="width:72px">
+                <input id="e1" type="number" value="2000" style="width:72px">
+              </span>
+            </label>
+            <label title="Ижил seed = яг ижил дарааллаар давтагдана">
+              <span>Санамсаргүй Seed:</span>
+              <input id="seed" type="number" value="42">
+            </label>
+            <label style="display:none">
+              <span>Алгоритм:</span>
+              <select id="mode">
+                <option value="mon">Monitor (deadlock-гүй)</option>
+                <option value="naive">Naive: зүүн→баруун (deadlock)</option>
+              </select>
+            </label>
+          </div>
+        </details>
+      </div>
+
+      <div class="card">
+        <div class="card-title">
+          <span class="title-left">
+            <svg class="ic" style="color:var(--acc)"><use href="#ic-code"/></svg>
+            <span>2. Яг одоо C код (<code>philosophers.c</code>) дээр юу ажиллаж байна вэ?</span>
+          </span>
+        </div>
+        <div id="codeView" class="code-box"></div>
+      </div>
+
+    </div>
+  </div>
+
+  <div class="main-grid">
+    <div class="card sc">
+      <div class="card-title">
+        <span class="title-left">
+          <svg class="ic" style="color:var(--acc)"><use href="#ic-table"/></svg>
+          Хүн бүрийн дэлгэрэнгүй төлөв
+        </span>
+      </div>
+      <table id="tb"></table>
+    </div>
+    <div class="card">
+      <div class="card-title">
+        <span class="title-left">
+          <svg class="ic" style="color:var(--acc)"><use href="#ic-terminal"/></svg>
+          Үйл явдлын түүх (Event Log)
+        </span>
+      </div>
+      <div id="log"></div>
+    </div>
+  </div>
+
 </div>
-<div class="card">
-<label title="Ширээнд хэдэн найз суухыг заана (2–12)">Philosopher-ийн тоо (2–12)<input id="n" type="number" value="5"></label>
-<label>
-  <span title="Бодож байх хугацаа: min-ээс max хүртэл санамсаргүй (мс)">Бодох хугацаа min / max (мс)</span>
-  <span><input id="t0" type="number" value="1000" style="width:70px"> <input id="t1" type="number" value="3000" style="width:70px"></span></label>
-<label>
-  <span title="Идэж байх хугацаа: min-ээс max хүртэл санамсаргүй (мс)">Идэх хугацаа min / max (мс)</span>
-  <span><input id="e0" type="number" value="1000" style="width:70px"> <input id="e1" type="number" value="2000" style="width:70px"></span></label>
-<label title="Ижил seed = яг ижил явц. Давтаж туршихад хэрэгтэй">Seed (давтах код)<input id="seed" type="number" value="42"></label>
-<label>Хурд (×)<select id="spd"><option>0.5</option>
-  <option selected>1</option><option>2</option><option>5</option><option>10</option></select></label>
-<label>Алгоритм<select id="mode" style="width:170px">
-  <option value="mon">Monitor (deadlock-гүй)</option><option value="naive">Naive: зүүн→баруун (deadlock)</option></select></label>
-<div id="mh"></div>
-<div class="ex"><b>Жишээ:</b> <button id="ex1">▶ 1. Хэвийн ажиллагаа (Monitor)</button> 
-  <button id="ex2">⚠ 2. Гацаж байгааг харах (Naive)</button></div>
-<div class="err" id="err"></div>
-<button class="p" id="go">Start / Apply</button> 
-<button id="pz">Pause</button> 
-<button id="st">Step 100мс</button> 
-<button id="rs">Reset</button>
-</div>
-<div class="card sc"><table id="tb"></table></div>
-<div class="card"><b>Event log</b><div id="log"></div></div>
-</div>
+
 <script>
-const $=id=>document.getElementById(id),C={thinking:'var(--think)',hungry:'var(--hung)',eating:'var(--eat)'};
-let S=null,timer=null,paused=false;
-function rng(seed){let a=seed>>>0;return()=>{a|=0;a=a+0x6D2B79F5|0;let t=Math.imul(a^a>>>15,1|a);t=t+Math.imul(t^t>>>7,61|t)^t;return((t^t>>>14)>>>0)/4294967296}}
-function params(){
-  const g=id=>Number($(id).value),n=g('n'),p={n,t0:g('t0'),t1:g('t1'),e0:g('e0'),e1:g('e1'),seed:g('seed'),mode:$('mode').value,spd:Number($('spd').value)};
-  if(!Number.isInteger(n)||n<2||n>12)return[null,'Philosopher-ийн тоо 2…12 бүхэл тоо байх ёстой.'];
-  for(const k of['t0','t1','e0','e1'])if(!Number.isFinite(p[k])||p[k]<=0)return[null,'Хугацаа 0-ээс их тоо байх ёстой ('+k+').'];
-  if(p.t0>p.t1||p.e0>p.e1)return[null,'min нь max-аас их байж болохгүй.'];
-  if(!Number.isFinite(p.seed))return[null,'Seed тоо байх ёстой.'];
-  return[p,''];
+// ===================================================================
+//  Dining-Philosophers симулятор — C програмтай (src/philosophers.c) ижил дүрэм.
+//  Бодит thread биш: "симуляцийн цаг"-ийг tick() алхмаар урагшлуулна.
+//
+//  S (симуляцийн төлөв):
+//    S.p      — тохиргоо {n, t0/t1 бодох мс, e0/e1 идэх мс, seed, mode, spd}
+//    S.t      — симуляцийн цаг (мс)        S.dead — deadlock илэрсэн эсэх
+//    S.fork[k]— f(k)-г барьж буй хүний дугаар, -1 = чөлөөтэй
+//    S.ph[i]  — P(i): st төлөв, left/right барьсан сэрээ, rem үлдсэн мс,
+//               hold (naive) баруун сэрээ рүү гар сунгах хүртэл үлдсэн мс,
+//               meals, since (өлссөн мөч), maxWait
+//  P(i)-ийн зүүн сэрээ = f(i), баруун сэрээ = f((i+1) mod N)
+// ===================================================================
+const $ = id => document.getElementById(id);
+const NAIVE_HOLD_MS = 500;   // naive: зүүн сэрээ авсны дараа баруун руу гар сунгах хүртэл (C-д 50 мс)
+const MAX_TIME_MS   = 60000; // нэг удаагийн хугацааны дээд хязгаар (C-тэй ижил)
+const MAX_LOG_LINES = 300;   // log хэт урт болж удаашрахаас сэргийлнэ
+
+function iconSvg(name, color = 'currentColor', size = 'ic-sm') {
+  return `<svg class="ic ${size}" style="color:${color}"><use href="#ic-${name}"/></svg>`;
 }
-function init(p){
-  const r=rng(p.seed);
-  S={p,r,t:0,dead:false,fork:Array(p.n).fill(-1),
-   ph:Array.from({length:p.n},()=>({st:'thinking',left:false,right:false,rem:0,meals:0,since:0,maxWait:0,hold:0}))};
-  S.ph.forEach((q,i)=>q.rem=rnd(p.t0,p.t1));
-  $('dl').style.display='none';log('Эхэллээ: '+p.n+' найз, '+(p.mode==='mon'?'Monitor (ширээний эзэнтэй)':'Naive (зүүн сэрээг эхэлж авдаг)')+', seed='+p.seed);
+
+const STATE_COLOR = {
+  thinking: 'var(--think)',
+  hungry:   'var(--hung)',
+  eating:   'var(--eat)'
+};
+
+const STATE_HTML_MN = {
+  thinking: `${iconSvg('think', 'var(--think)')} Бодож байна`,
+  hungry:   `${iconSvg('hungry', 'var(--hung)')} Өлсөж байна`,
+  eating:   `${iconSvg('utensils', 'var(--eat)')} Идэж байна`
+};
+
+let S = null;         
+let timer = null;      
+let paused = false;    
+let selectedPh = 0;  
+
+function createRng(seed) {
+  let a = seed >>> 0;
+  return () => {
+    a |= 0;
+    a = (a + 0x6D2B79F5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
 }
-function rnd(a,b){return Math.round(a+S.r()*(b-a))}
-function log(m){const d=$('log');d.insertAdjacentHTML('beforeend','<div>['+(S?S.t:0)+'мс] '+m+'</div>');d.scrollTop=1e9}
-function setEat(i){const q=S.ph[i];q.st='eating';q.left=q.right=true;S.fork[i]=i;S.fork[(i+1)%S.p.n]=i;q.rem=rnd(S.p.e0,S.p.e1);q.maxWait=Math.max(q.maxWait,S.t-q.since);log('P'+i+' идэж эхэллээ (сэрээ f'+i+', f'+(i+1)%S.p.n+' авсан)')}
-function test(i){const n=S.p.n,q=S.ph[i];if(q.st==='hungry'&&S.ph[(i+n-1)%n].st!=='eating'&&S.ph[(i+1)%n].st!=='eating')setEat(i)}
-function tick(dt){
-  if(!S||S.dead)return;const n=S.p.n,naive=S.p.mode==='naive';S.t+=dt;
-  for(let i=0;i<n;i++){const q=S.ph[i];
-    if(q.st==='thinking'||q.st==='eating')q.rem-=dt;
-    if(q.st==='thinking'&&q.rem<=0){q.st='hungry';q.since=S.t;log('P'+i+' өлслөө');if(!naive){test(i);if(q.st==='hungry')log('P'+i+' хүлээж байна: '+why(i))}}
-    else if(q.st==='eating'&&q.rem<=0){q.st='thinking';q.left=q.right=false;S.fork[i]=-1;S.fork[(i+1)%n]=-1;q.meals++;q.rem=rnd(S.p.t0,S.p.t1);log('P'+i+' идэж дуусаад сэрээгээ тавьлаа, одоо бодож байна');
-      if(!naive){test((i+n-1)%n);test((i+1)%n)}}
-    if(naive&&q.st==='hungry'){
-      if(!q.left&&S.fork[i]<0){S.fork[i]=i;q.left=true;q.hold=500;log('P'+i+' зүүн сэрээ f'+i+' авлаа, баруун сэрээг авахыг оролдоно')}
-      else if(q.left&&!q.right){q.hold-=dt;const r=(i+1)%n;if(q.hold<=0&&S.fork[r]<0){S.fork[r]=i;q.right=true;setEat(i)}}}
+
+function readParams() {
+  const num = id => Number($(id).value);
+  const n = num('n');
+  const p = {
+    n,
+    t0: num('t0'),
+    t1: num('t1'),
+    e0: num('e0'),
+    e1: num('e1'),
+    seed: num('seed'),
+    mode: $('mode').value,
+    spd: Number($('spd').value)
+  };
+
+  if (!Number.isInteger(n) || n < 2 || n > 12)
+    return [null, 'Хүний тоо (N) 2-оос 12-ын хооронд бүхэл тоо байх ёстой.', 'n'];
+  const names = { t0: 'бодох min', t1: 'бодох max', e0: 'идэх min', e1: 'идэх max' };
+  for (const k in names) {
+    if (!Number.isFinite(p[k]) || p[k] <= 0 || p[k] > MAX_TIME_MS)
+      return [null, `Хугацаа 0-ээс их, ${MAX_TIME_MS} мс-ээс бага тоо байх ёстой (${names[k]}).`, k];
   }
-  if(naive&&S.ph.every(q=>q.st==='hungry'&&q.left&&!q.right)){S.dead=true;$('dl').style.display='block';log('DEADLOCK: бүгд зүүн сэрээгээ барьж, баруун сэрээг хүлээн гацлаа')}
+  if (p.t0 > p.t1) return [null, 'min хугацаа нь max хугацаанаас их байж болохгүй (бодох).', 't0'];
+  if (p.e0 > p.e1) return [null, 'min хугацаа нь max хугацаанаас их байж болохгүй (идэх).', 'e0'];
+  // хоосон талбар Number('') = 0 болдог тул текстийг нь тусад нь шалгана
+  if ($('seed').value.trim() === '' || !Number.isInteger(p.seed) || p.seed < 0)
+    return [null, 'Seed тоо байх ёстой (0 эсвэл түүнээс их бүхэл тоо, жишээ нь 42).', 'seed'];
+
+  return [p, '', ''];
 }
-function draw(){
-  const n=S.p.n,o=180,R=125,th=i=>-Math.PI/2+2*Math.PI*i/n;let s=`<circle cx="${o}" cy="${o}" r="85" fill="var(--bg)" stroke="var(--bd)" stroke-width="3"/>`;
-  for(let k=0;k<n;k++){
-    const own=S.fork[k],a=own<0?th(k)+Math.PI/n:th(own)+(k===own?-0.22:0.22),r=own<0?62:(78),col=own<0?'var(--mut)':C[S.ph[own].st],
-    x1=o+(r-12)*Math.cos(a),y1=o+(r-12)*Math.sin(a),x2=o+(r+12)*Math.cos(a),y2=o+(r+12)*Math.sin(a);
-    s+=`<line x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}" stroke="${col}" stroke-width="5" stroke-linecap="round"/><text x="${o+(r-24)*Math.cos(a)}" y="${o+(r-24)*Math.sin(a)+3}" font-size="9" text-anchor="middle" fill="var(--mut)">f${k}</text>`}
-  const pr=n>8?18:22;
-  S.ph.forEach((q,i)=>{const x=o+R*Math.cos(th(i)),y=o+R*Math.sin(th(i));s+=`<circle cx="${x}" cy="${y}" r="${pr}" fill="${C[q.st]}" stroke="var(--card)" stroke-width="3"/><text x="${x}" y="${y+4}" text-anchor="middle" fill="#fff" font-size="12" font-weight="600">P${i}</text>`});
-  $('v').innerHTML=s;$('clk').textContent='Симуляцийн цаг: '+(S.t/1000).toFixed(1)+' с';$('now').innerHTML=caption();
-  let h='<tr><th>P</th><th>Төлөв</th><th>Сэрээ (зүүн/баруун)</th><th>Хоол</th><th>Хүлээсэн</th></tr>';
-  S.ph.forEach((q,i)=>{const w=q.st==='hungry'?S.t-q.since:q.maxWait;h+=`<tr><td>P${i}</td><td style="color:${C[q.st]}">${MN[q.st]}</td><td>${q.left?'f'+i:'–'} / ${q.right?'f'+(i+1)%S.p.n:'–'}</td><td>${q.meals}</td><td>${(w/1000).toFixed(1)}с${q.st==='hungry'?' …':' (max)'}</td></tr>`});
-  $('tb').innerHTML=h;
+
+function initSimulation(p) {
+  const r = createRng(p.seed);
+  S = {
+    p,
+    r,
+    t: 0,
+    dead: false,
+    fork: Array(p.n).fill(-1),
+    ph: Array.from({ length: p.n }, () => ({
+      st: 'thinking',
+      left: false,
+      right: false,
+      rem: 0,
+      dur: 1000,
+      meals: 0,
+      since: 0,
+      maxWait: 0,
+      hold: 0
+    }))
+  };
+
+  if (selectedPh >= p.n) selectedPh = 0;
+
+  S.ph.forEach(q => {
+    const d = randomBetween(p.t0, p.t1);
+    q.rem = d;
+    q.dur = d;
+  });
+
+  $('dl').style.display = 'none';
+  logEvent(
+    'play',
+    'var(--acc)',
+    `Эхэллээ: ${p.n} хүн, ` +
+    (p.mode === 'mon'
+      ? 'Monitor горим (2 сэрээг зэрэг шалгаж өгнө)'
+      : 'Naive горим (Зүүн сэрээгээ эхэлж авдаг)') +
+    `, seed=${p.seed}`
+  );
 }
-const MN={thinking:'бодож байна',hungry:'өлсөж байна',eating:'идэж байна'};
-function why(i){const n=S.p.n,l=(i+n-1)%n,r=(i+1)%n;
- if(S.p.mode==='naive'){const q=S.ph[i];if(!q.left)return 'зүүн сэрээ f'+i+'-ийг P'+S.fork[i]+' барьж байна';return 'баруун сэрээ f'+r+'-ийг P'+S.fork[r]+' барьж байна'}
- const b=[];if(S.ph[l].st==='eating')b.push('P'+l);if(S.ph[r].st==='eating'&&r!==l)b.push('P'+r);
- return 'хөрш '+b.join(' ба ')+' идэж байгаа тул сэрээ чөлөөгүй'}
-function caption(){if(!S)return '';const E=[],H=[];let T=0;S.ph.forEach((q,i)=>{if(q.st==='eating')E.push(i);else if(q.st==='hungry')H.push(i);else T++});
- if(S.dead)return '<b>Бүгд гацсан.</b> Хүн бүр зүүн сэрээгээ барьсан, баруун сэрээг нь хөрш нь барьж байна. Хэн ч идэж чадахгүй.';
- let h=E.length?'<b>Идэж байна:</b> '+E.map(i=>'P'+i+' (сэрээ f'+i+', f'+(i+1)%S.p.n+')').join(', '):'Одоо хэн ч идэхгүй байна.';
- H.forEach(i=>{h+='<br><b>P'+i+'</b> өлсөж байна — '+why(i)});
- h+='<br>Бодож байгаа: '+T+' хүн';return h}
-function preset(o){for(const k in o)$(k).value=o[k];modeHelp();$('go').click()}
-function modeHelp(){$('mh').textContent=$('mode').value==='mon'?'Ширээний эзэн (monitor) хоёр хөрш нь идэхгүй үед л хоёр сэрээг зэрэг өгнө → гацахгүй.':'Хүн бүр эхлээд зүүн сэрээгээ авч, дараа нь баруун сэрээгээ хүлээнэ → бүгд нэгэн зэрэг өлсвөл гацна.'}
-function loop(){clearInterval(timer);timer=setInterval(()=>{if(!paused){tick(50*S.p.spd);draw()}},50)}
-$('go').onclick=()=>{const[p,e]=params();$('err').textContent=e;if(e)return;$('log').innerHTML='';init(p);paused=false;$('pz').textContent='Pause';draw();loop()};
-$('pz').onclick=()=>{if(!S)return;paused=!paused;$('pz').textContent=paused?'Resume':'Pause'};
-$('st').onclick=()=>{if(!S){$('go').click()}paused=true;$('pz').textContent='Resume';tick(100);draw()};
-$('rs').onclick=()=>{clearInterval(timer);S=null;$('log').innerHTML='';$('v').innerHTML='';$('tb').innerHTML='';$('dl').style.display='none';$('err').textContent='';$('clk').textContent='Reset хийгдлээ.'};
-$('mode').onchange=modeHelp;
-$('ex1').onclick=()=>preset({n:5,t0:1000,t1:3000,e0:1000,e1:2000,seed:42,spd:1,mode:'mon'});
-$('ex2').onclick=()=>preset({n:5,t0:500,t1:500,e0:1000,e1:1000,seed:1,spd:2,mode:'naive'});
-modeHelp();$('go').click();
-</script></body></html>
+
+function randomBetween(min, max) {
+  return Math.round(min + S.r() * (max - min));
+}
+
+function logEvent(iconName, color, msg) {
+  const d = $('log');
+  const timeStr = S ? S.t : 0;
+  d.insertAdjacentHTML(
+    'beforeend',
+    `<div>${iconSvg(iconName, color)} <span><b>[${timeStr}мс]</b> ${msg}</span></div>`
+  );
+  while (d.childElementCount > MAX_LOG_LINES) d.firstElementChild.remove();
+  d.scrollTop = 1e9;
+}
+
+
+function startEating(i) {
+  const n = S.p.n;
+  const q = S.ph[i];
+  const leftFork = i;
+  const rightFork = (i + 1) % n;
+
+  q.st = 'eating';
+  q.left = true;
+  q.right = true;
+  S.fork[leftFork] = i;
+  S.fork[rightFork] = i;
+
+  const d = randomBetween(S.p.e0, S.p.e1);
+  q.rem = d;
+  q.dur = d;
+  q.maxWait = Math.max(q.maxWait, S.t - q.since);
+
+  logEvent('utensils', 'var(--eat)', `<b>P${i}</b> идэж эхэллээ (сэрээ <code>f${leftFork}</code>, <code>f${rightFork}</code> авсан)`);
+}
+
+
+function monitorTest(i) {
+  const n = S.p.n;
+  const leftNeighbor  = (i + n - 1) % n;
+  const rightNeighbor = (i + 1) % n;
+  const q = S.ph[i];
+
+  if (
+    q.st === 'hungry' &&
+    S.ph[leftNeighbor].st !== 'eating' &&
+    S.ph[rightNeighbor].st !== 'eating'
+  ) {
+    startEating(i);
+  }
+}
+
+function tick(dt) {
+  if (!S || S.dead) return;
+  const n = S.p.n;
+  const isNaive = S.p.mode === 'naive';
+  S.t += dt;
+
+  for (let i = 0; i < n; i++) {
+    const q = S.ph[i];
+
+    if (q.st === 'thinking' || q.st === 'eating') {
+      q.rem -= dt;
+    }
+
+    if (q.st === 'thinking' && q.rem <= 0) {
+      q.st = 'hungry';
+      q.since = S.t;
+      logEvent('hungry', 'var(--hung)', `<b>P${i}</b> өлслөө (сэрээ хүсэж байна)`);
+
+      if (!isNaive) {
+        monitorTest(i);
+        if (q.st === 'hungry') {
+          logEvent('info', 'var(--mut)', `<b>P${i}</b> хүлээж байна: ${explainWhyWaiting(i)}`);
+        }
+      }
+    }
+    else if (q.st === 'eating' && q.rem <= 0) {
+      const leftFork = i;
+      const rightFork = (i + 1) % n;
+
+      q.st = 'thinking';
+      q.left = false;
+      q.right = false;
+      S.fork[leftFork] = -1;
+      S.fork[rightFork] = -1;
+      q.meals++;
+
+      const d = randomBetween(S.p.t0, S.p.t1);
+      q.rem = d;
+      q.dur = d;
+
+      logEvent('think', 'var(--think)', `<b>P${i}</b> идэж дуусаад сэрээгээ тавьлаа (Нийт ${q.meals} удаа идсэн)`);
+
+      if (!isNaive) {
+        monitorTest((i + n - 1) % n);
+        monitorTest((i + 1) % n);
+      }
+    }
+
+    if (isNaive && q.st === 'hungry') {
+      const leftFork = i;
+      const rightFork = (i + 1) % n;
+
+      if (!q.left && S.fork[leftFork] < 0) {
+        S.fork[leftFork] = i;
+        q.left = true;
+        q.hold = NAIVE_HOLD_MS;
+        logEvent('fork', 'var(--hung)', `<b>P${i}</b> зүүн сэрээ <code>f${leftFork}</code>-г авлаа, одоо баруун сэрээ <code>f${rightFork}</code>-г хүлээнэ`);
+      } else if (q.left && !q.right) {
+        q.hold -= dt;
+        if (q.hold <= 0 && S.fork[rightFork] < 0) {
+          S.fork[rightFork] = i;
+          q.right = true;
+          startEating(i);
+        }
+      }
+    }
+  }
+
+  // Deadlock: бүгд зүүн сэрээгээ барьсан бөгөөд баруун сэрээгээ ХҮЛЭЭЖ эхэлсэн
+  // (C програмын is_deadlocked_locked()-тэй ижил нөхцөл)
+  if (isNaive && S.ph.every(q => q.st === 'hungry' && q.left && !q.right && q.hold <= 0)) {
+    S.dead = true;
+    $('dl').style.display = 'block';
+    logEvent('lock', 'var(--bad)', '<b>DEADLOCK ИЛЭРЛЭЭ:</b> Хүн бүр зүүн сэрээгээ бариад, баруун сэрээгээ хүлээж үүрд гацлаа!');
+  }
+}
+
+function explainWhyWaiting(i) {
+  const n = S.p.n;
+  const leftN = (i + n - 1) % n;
+  const rightN = (i + 1) % n;
+  const rightFork = (i + 1) % n;
+
+  if (S.p.mode === 'naive') {
+    const q = S.ph[i];
+    if (!q.left) {
+      return S.fork[i] < 0
+        ? `зүүн сэрээ f${i} чөлөөлөгдсөн, дараагийн алхамд авна`
+        : `зүүн сэрээ f${i}-ийг P${S.fork[i]} барьж байна`;
+    }
+    if (q.hold > 0) {
+      return `зүүн сэрээ f${i}-ээ барьчихсан, баруун сэрээ f${rightFork} рүү гараа сунгах гэж байна`;
+    }
+    return S.fork[rightFork] < 0
+      ? `баруун сэрээ f${rightFork} чөлөөлөгдсөн, дараагийн алхамд авна`
+      : `зүүн сэрээ f${i}-ээ барьчихсан, баруун сэрээ f${rightFork}-ийг P${S.fork[rightFork]} тавихыг хүлээж байна`;
+  }
+
+  const eatingNeighbors = [];
+  if (S.ph[leftN].st === 'eating') eatingNeighbors.push(`P${leftN}`);
+  if (S.ph[rightN].st === 'eating' && rightN !== leftN) eatingNeighbors.push(`P${rightN}`);
+  if (eatingNeighbors.length === 0) return 'ээлжээ хүлээж байна';
+  return `хөрш ${eatingNeighbors.join(' ба ')} идэж байгаа тул 2 сэрээ зэрэг сулрахыг хүлээж байна`;
+}
+
+function drawPersonStateIcon(x, y, state, isDead) {
+  if (isDead) {
+    return `
+      <g transform="translate(${x},${y})" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="-5" y="-1" width="10" height="7" rx="1.5"/>
+        <path d="M-3 -1v-2.5a3 3 0 0 1 6 0V-1"/>
+      </g>
+    `;
+  }
+  if (state === 'thinking') {
+    return `
+      <g transform="translate(${x},${y})" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M-3.5 -2a4 4 0 1 1 7 0c-.5 1-1.2 1.6-1.5 2.8h-4c-.3-1.2-1-1.8-1.5-2.8z"/>
+        <line x1="-1.8" y1="3.2" x2="1.8" y2="3.2"/>
+      </g>
+    `;
+  }
+  if (state === 'hungry') {
+    return `
+      <g transform="translate(${x},${y})" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+        <circle cx="0" cy="-1" r="5.5"/>
+        <polyline points="0 -4 0 -1 2.5 0.5"/>
+      </g>
+    `;
+  }
+  return `
+    <g transform="translate(${x},${y})" stroke="#fff" stroke-width="1.8" fill="none" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M-4 -5v3.5a2 2 0 0 0 4 0V-5"/>
+      <line x1="-2" y1="-5" x2="-2" y2="4"/>
+      <path d="M3 -5v9"/>
+      <path d="M3 -5c1.5 0 2 1.5 2 3.5S3 0 3 0"/>
+    </g>
+  `;
+}
+
+function draw() {
+  if (!S) return;
+  const n = S.p.n;
+  const cx = 210, cy = 210;
+  const tableR = 108;
+  const personR = 158;
+  const plateR = 82;
+  const forkRingR = 74;
+  const big = n > 8;                      // олон хүнтэй үед жижиг дүрс (давхцахгүй)
+  const plateSize = big ? 9 : 13;
+  const forkSize = big ? 9 : 11;
+  const forkFont = big ? 8 : 9.5;
+  const angleOf = i => -Math.PI / 2 + (2 * Math.PI * i) / n;
+  // f(k) сэрээ P(k-1) ба P(k)-ийн яг дунд байрлана
+  const forkPos = k => {
+    const a = angleOf(k) - Math.PI / n;
+    return [cx + forkRingR * Math.cos(a), cy + forkRingR * Math.sin(a)];
+  };
+  const handPos = i => [cx + (personR - 28) * Math.cos(angleOf(i)), cy + (personR - 28) * Math.sin(angleOf(i))];
+
+  let svg = `
+    <defs>
+      <marker id="arrowWait" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--hung)"/>
+      </marker>
+      <marker id="arrowDead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse">
+        <path d="M 0 1 L 10 5 L 0 9 z" fill="var(--bad)"/>
+      </marker>
+    </defs>
+  `;
+
+  svg += `<circle cx="${cx}" cy="${cy}" r="${tableR}" fill="var(--table-wood)" stroke="var(--table-rim)" stroke-width="5"/>`;
+  svg += `<circle cx="${cx}" cy="${cy}" r="${tableR - 8}" fill="none" stroke="var(--bd)" stroke-dasharray="4 4"/>`;
+
+  const centerTitle = S.dead
+    ? 'ГАЦСАН!'
+    : S.p.mode === 'mon'
+    ? 'Monitor'
+    : 'Naive';
+  const centerSub = S.dead
+    ? 'Deadlock үүссэн'
+    : S.p.mode === 'mon'
+    ? 'Зохицуулагчтай'
+    : 'Зүүн → Баруун';
+
+  svg += `
+    <circle cx="${cx}" cy="${cy}" r="42" fill="var(--card)" stroke="${S.dead ? 'var(--bad)' : 'var(--bd)'}" stroke-width="2"/>
+    <text x="${cx}" y="${cy - 4}" text-anchor="middle" font-size="11.5" font-weight="700" fill="${S.dead ? 'var(--bad)' : 'var(--fg)'}">${centerTitle}</text>
+    <text x="${cx}" y="${cy + 11}" text-anchor="middle" font-size="9.5" fill="var(--mut)">${centerSub}</text>
+  `;
+
+  for (let i = 0; i < n; i++) {
+    const a = angleOf(i);
+    const px = cx + plateR * Math.cos(a);
+    const py = cy + plateR * Math.sin(a);
+    const isEating = S.ph[i].st === 'eating';
+    svg += `<circle cx="${px}" cy="${py}" r="${plateSize}" fill="var(--card)" stroke="${isEating ? 'var(--eat)' : 'var(--bd)'}" stroke-width="2"/>`;
+    svg += `<circle cx="${px}" cy="${py}" r="${plateSize - 5}" fill="${isEating ? 'var(--eat-bg)' : 'var(--card-sub)'}"/>`;
+    if (isEating && !big) {
+      svg += `<path d="M ${px - 4} ${py - 1} Q ${px} ${py - 4} ${px + 4} ${py - 1} M ${px - 4} ${py + 2} Q ${px} ${py - 1} ${px + 4} ${py + 2}" stroke="var(--eat)" stroke-width="1.6" fill="none" stroke-linecap="round"/>`;
+    }
+  }
+
+  // 1) Барьж буй сэрээ: эзнээс сэрээ рүү бүдүүн зураас
+  for (let k = 0; k < n; k++) {
+    const owner = S.fork[k];
+    if (owner < 0) continue;
+    const [hx, hy] = handPos(owner), [fx, fy] = forkPos(k);
+    const col = S.dead ? 'var(--bad)' : STATE_COLOR[S.ph[owner].st];
+    svg += `<line x1="${hx}" y1="${hy}" x2="${fx}" y2="${fy}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"/>`;
+  }
+
+  // 2) Хүлээж буй сэрээ: өлссөн хүнээс тасархай сум (сэрээний ирмэг дээр зогсоно)
+  for (let i = 0; i < n; i++) {
+    const q = S.ph[i];
+    if (q.st !== 'hungry') continue;
+    const [hx, hy] = handPos(i);
+    const needed = [];
+    if (!q.left) needed.push(i);
+    if (!q.right) needed.push((i + 1) % n);
+    for (const k of needed) {
+      const [fx, fy] = forkPos(k);
+      const len = Math.hypot(fx - hx, fy - hy), stop = (forkSize + 3) / len;
+      const ex = fx - (fx - hx) * stop, ey = fy - (fy - hy) * stop;
+      svg += `<line x1="${hx}" y1="${hy}" x2="${ex}" y2="${ey}" stroke="${S.dead ? 'var(--bad)' : 'var(--hung)'}" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#${S.dead ? 'arrowDead' : 'arrowWait'})"/>`;
+    }
+  }
+
+  // 3) Сэрээнүүд (хамгийн дээр нь зурна — дугаар нь харагдана)
+  for (let k = 0; k < n; k++) {
+    const owner = S.fork[k];
+    const [fx, fy] = forkPos(k);
+    if (owner >= 0) {
+      const col = S.dead ? 'var(--bad)' : STATE_COLOR[S.ph[owner].st];
+      svg += `<circle cx="${fx}" cy="${fy}" r="${forkSize}" fill="${col}" stroke="var(--card)" stroke-width="1.5"/>`;
+      svg += `<text x="${fx}" y="${fy + 3.5}" text-anchor="middle" font-size="${forkFont}" font-weight="700" fill="#fff">f${k}</text>`;
+    } else {
+      svg += `<circle cx="${fx}" cy="${fy}" r="${forkSize}" fill="var(--card)" stroke="var(--mut)" stroke-width="2"/>`;
+      svg += `<text x="${fx}" y="${fy + 3.5}" text-anchor="middle" font-size="${forkFont}" font-weight="700" fill="var(--fg)">f${k}</text>`;
+    }
+  }
+
+  const nodeR = n > 8 ? 22 : 27;
+  S.ph.forEach((q, i) => {
+    const a = angleOf(i);
+    const x = cx + personR * Math.cos(a);
+    const y = cy + personR * Math.sin(a);
+    const col = S.dead ? 'var(--bad)' : STATE_COLOR[q.st];
+    const isSelected = i === selectedPh;
+
+    if (isSelected) {
+      svg += `<circle cx="${x}" cy="${y}" r="${nodeR + 6}" fill="none" stroke="var(--fg)" stroke-width="2" stroke-dasharray="3 3"/>`;
+    }
+
+    svg += `<g style="cursor:pointer" data-i="${i}">`;
+    svg += `<circle cx="${x}" cy="${y}" r="${nodeR}" fill="${col}" stroke="var(--card)" stroke-width="3"/>`;
+    svg += drawPersonStateIcon(x, y - 5, q.st, S.dead);
+    svg += `<text x="${x}" y="${y + 13}" text-anchor="middle" fill="#fff" font-size="11" font-weight="700">P${i}</text>`;
+
+    if (q.meals > 0) {
+      svg += `<circle cx="${x + nodeR - 4}" cy="${y - nodeR + 4}" r="9" fill="var(--card)" stroke="${col}" stroke-width="1.5"/>`;
+      svg += `<text x="${x + nodeR - 4}" y="${y - nodeR + 7.5}" text-anchor="middle" font-size="9" font-weight="700" fill="var(--fg)">${q.meals}</text>`;
+    }
+    svg += `</g>`;
+  });
+
+  $('v').innerHTML = svg;
+  $('clk').textContent = `Симуляцийн цаг: ${(S.t / 1000).toFixed(1)} с`;
+  $('now').innerHTML = buildCaption();
+
+  let tableHtml = `
+    <tr>
+      <th>Хүн</th>
+      <th>Одоогийн төлөв</th>
+      <th>Барьсан сэрээ (Зүүн / Баруун)</th>
+      <th>Идсэн тоо</th>
+      <th>Хүлээсэн хугацаа</th>
+    </tr>
+  `;
+  S.ph.forEach((q, i) => {
+    const waitTime = q.st === 'hungry' ? S.t - q.since : q.maxWait;
+    const rowBg = i === selectedPh ? 'background:var(--card-sub);font-weight:600' : '';
+    const leftBadge = q.left ? `${iconSvg('fork', 'var(--eat)')} f${i}` : '–';
+    const rightBadge = q.right ? `${iconSvg('fork', 'var(--eat)')} f${(i + 1) % n}` : '–';
+    tableHtml += `
+      <tr style="cursor:pointer;${rowBg}" data-i="${i}">
+        <td><b>P${i}</b> ${i === selectedPh ? '<span style="color:var(--acc)">(сонгосон)</span>' : ''}</td>
+        <td style="color:${STATE_COLOR[q.st]};font-weight:600">${STATE_HTML_MN[q.st]}</td>
+        <td><code>${leftBadge}</code> / <code>${rightBadge}</code></td>
+        <td>${iconSvg('check', 'var(--eat)')} ${q.meals} удаа</td>
+        <td>${(waitTime / 1000).toFixed(1)} с ${q.st === 'hungry' ? '(одоо хүлээж буй)' : '(max)'}</td>
+      </tr>
+    `;
+  });
+  $('tb').innerHTML = tableHtml;
+
+  renderCodeInspector();
+}
+
+function selectPhilosopher(i) {
+  selectedPh = i;
+  draw();
+}
+
+// SVG ба хүснэгтийг 50 мс тутам дахин зурдаг тул onclick нь дарж байх зуур
+// солигдоод ажиллахгүй болдог. pointerdown нь дармагц шууд ажиллана.
+for (const id of ['v', 'tb']) {
+  $(id).addEventListener('pointerdown', e => {
+    const el = e.target.closest('[data-i]');
+    if (el && S) selectPhilosopher(Number(el.dataset.i));
+  });
+}
+
+function buildCaption() {
+  if (!S) return '';
+  const eatingList = [], hungryList = [];
+  let thinkingCount = 0;
+
+  S.ph.forEach((q, i) => {
+    if (q.st === 'eating') eatingList.push(i);
+    else if (q.st === 'hungry') hungryList.push(i);
+    else thinkingCount++;
+  });
+
+  if (S.dead) {
+    return `${iconSvg('lock', 'var(--bad)')} <b>Бүгд гацсан (Deadlock):</b> Хүн бүр зүүн сэрээгээ авчихсан учраас сул сэрээ нэг ч үлдээгүй. Баруун сэрээг нь хөрш нь тавихгүй тул хэн ч хоолоо идэж чадахгүй.`;
+  }
+
+  let html = eatingList.length
+    ? `${iconSvg('utensils', 'var(--eat)')} <b>Одоо идэж байна:</b> ` + eatingList.map(i => `<b>P${i}</b> (сэрээ <code>f${i}</code>, <code>f${(i + 1) % S.p.n}</code> барьсан)`).join(', ')
+    : `${iconSvg('info', 'var(--mut)')} <b>Одоо идэж байгаа хүн алга.</b>`;
+
+  hungryList.forEach(i => {
+    html += `<br>${iconSvg('hungry', 'var(--hung)')} <b>P${i}</b> өлсөж байна — ${explainWhyWaiting(i)}`;
+  });
+
+  html += `<br>${iconSvg('think', 'var(--think)')} <b>Бодож байгаа:</b> ${thinkingCount} хүн`;
+  return html;
+}
+
+// Сонгосон хүн C кодын аль мөр дээр байгааг харуулна (src/philosophers.c-тэй ижил нэр)
+function renderCodeInspector() {
+  if (!S) return;
+  const i = selectedPh;
+  const n = S.p.n;
+  const q = S.ph[i];
+  const leftN = (i + n - 1) % n;
+  const rightN = (i + 1) % n;
+  const leftF = i;
+  const rightF = (i + 1) % n;
+  const step = (active, comment, code, note = '') =>
+    `<div class="code-step ${active}"><span class="c-comment">${comment}</span>${code}${note}</div>`;
+  const noteHtml = (text, color) => `<span class="c-comment" style="color:${color}">&rarr; ${text}</span>`;
+  const header = text => `<div style="margin-bottom:6px;color:#b8b3d8;font-family:system-ui,sans-serif;font-size:12px">${text}</div>`;
+
+  if (S.p.mode === 'mon') {
+    $('codeView').innerHTML =
+      header(`Одоо <b>P${i}</b>-ийн кодын алхмыг харуулж байна (ширээн дээрх өөр хүн дээр дарж сольж харна уу):`) +
+      step(q.st === 'thinking' ? 'active-think' : '',
+        `// 1. THINKING — P${i} бодож байна${q.st === 'thinking' ? ' (үлдсэн ' + Math.max(0, q.rem) + ' мс)' : ''}`,
+        `sleep_ms(think_time);`) +
+      step(q.st === 'hungry' ? 'active-hung' : '',
+        `// 2. pickup(${i}) — өлсөөд monitor-оос 2 сэрээг зэрэг хүснэ`,
+        `state[${i}] = HUNGRY;  test(${i});<br>while (state[${i}] != EATING)<br>&nbsp;&nbsp;pthread_cond_wait(&amp;can_eat[${i}], &amp;lock);`,
+        q.st === 'hungry' ? noteHtml('Яг одоо энд хүлээж байна: ' + explainWhyWaiting(i), '#f7a248') : '') +
+      step('',
+        `// test(${i}) — зүүн хөрш P${leftN}, баруун хөрш P${rightN} аль нь ч идэхгүй бол 2 сэрээг зэрэг өгнө`,
+        `if (state[${i}] == HUNGRY &amp;&amp; state[${leftN}] != EATING &amp;&amp; state[${rightN}] != EATING)<br>` +
+        `&nbsp;&nbsp;state[${i}] = EATING;   // f${leftF}, f${rightF} сэрээ P${i}-д`) +
+      step(q.st === 'eating' ? 'active-eat' : '',
+        `// 3. EATING — P${i} f${leftF}, f${rightF} сэрээгээр идэж байна${q.st === 'eating' ? ' (үлдсэн ' + Math.max(0, q.rem) + ' мс)' : ''}`,
+        `sleep_ms(eat_time);`) +
+      step('',
+        `// 4. putdown(${i}) — сэрээгээ тавиад, хөршүүд одоо идэж чадах эсэхийг шалгана`,
+        `state[${i}] = THINKING;  test(${leftN});  test(${rightN});`);
+  } else {
+    const waitingLeft  = q.st === 'hungry' && !q.left;
+    const holding      = q.st === 'hungry' && q.left && q.hold > 0;
+    const waitingRight = q.st === 'hungry' && q.left && q.hold <= 0;
+    $('codeView').innerHTML =
+      header(`Одоо <b>P${i}</b>-ийн Naive кодын алхмыг харуулж байна:`) +
+      step(q.st === 'thinking' ? 'active-think' : '', `// 1. THINKING — P${i} бодож байна`, `sleep_ms(think_time);`) +
+      step(waitingLeft ? 'active-hung' : '',
+        `// 2. Эхлээд ЗҮҮН сэрээ f${leftF}-ийг авна (өөр хүн барьж байвал хүлээнэ)`,
+        `pthread_mutex_lock(&amp;fork_mutex[${leftF}]);`,
+        waitingLeft ? noteHtml(explainWhyWaiting(i), '#f7a248') : '') +
+      step(holding ? 'active-hung' : '',
+        `// 3. Зүүн сэрээгээ барьсаар хүлээнэ ("hold and wait")${holding ? ' — үлдсэн ' + q.hold + ' мс' : ''}`,
+        `sleep_ms(NAIVE_HOLD_MS);   // UI-д 500 мс, C-д 50 мс`) +
+      step(S.dead ? 'active-dead' : (waitingRight ? 'active-hung' : ''),
+        `// 4. БАРУУН сэрээ f${rightF}-ийг авна — бүгд зүүнээ барьсан бол ЭНД ГАЦНА`,
+        `pthread_mutex_lock(&amp;fork_mutex[${rightF}]);`,
+        S.dead ? `<span class="c-comment" style="color:#ff8080">[DEADLOCK] Бүгд энэ мөр дээр гацсан! f${rightF}-ийг P${rightN} барьчихсан, тэр ч бас баруун сэрээгээ хүлээж байна.</span>`
+               : (waitingRight ? noteHtml(explainWhyWaiting(i), '#f7a248') : '')) +
+      step(q.st === 'eating' ? 'active-eat' : '',
+        `// 5. EATING — хоёр сэрээтэй идээд, дараа нь хоёуланг нь тавина`,
+        `sleep_ms(eat_time);<br>pthread_mutex_unlock(&amp;fork_mutex[${rightF}]);  pthread_mutex_unlock(&amp;fork_mutex[${leftF}]);`);
+  }
+}
+
+function updateModeUI() {
+  const isMon = $('mode').value === 'mon';
+  $('cardMon').className = 'mode-card ' + (isMon ? 'active-mon' : '');
+  $('cardNaive').className = 'mode-card ' + (!isMon ? 'active-naive' : '');
+  $('mh').textContent = isMon
+    ? 'Monitor горим: Зохицуулагч (monitor) зүүн ба баруун хөрш нь идэхгүй байгаа үед л 2 сэрээг зэрэг өгнө → Хэзээ ч гацахгүй.'
+    : 'Naive горим: Хүн бүр эхлээд зүүн сэрээгээ авч, дараа нь баруун сэрээгээ хүлээнэ → Бүгд зэрэг өлсвөл тойргоор бие биенээ хүлээгээд гацна (Deadlock).';
+}
+
+function setPauseButtonState(isPaused) {
+  paused = isPaused;
+  $('pz').innerHTML = isPaused
+    ? `<svg class="ic ic-sm"><use href="#ic-play"/></svg><span>Үргэлжлүүлэх</span>`
+    : `<svg class="ic ic-sm"><use href="#ic-pause"/></svg><span>Түр зогсоох</span>`;
+}
+
+function applyPreset(o) {
+  for (const k in o) $(k).value = o[k];
+  updateModeUI();
+  $('go').click();
+}
+
+function startLoop() {
+  clearInterval(timer);
+  timer = setInterval(() => {
+    if (!paused && S) {
+      tick(50 * S.p.spd);
+      draw();
+    }
+  }, 50);
+}
+
+$('go').onclick = () => {
+  document.querySelectorAll('input.bad').forEach(el => el.classList.remove('bad'));
+  const [p, err, field] = readParams();
+  $('err').textContent = err;
+  if (err) {
+    $(field).classList.add('bad');
+    $(field).closest('details').open = true;   // нуусан тохиргоонд байвал харагдуулна
+    return;
+  }
+  $('log').innerHTML = '';
+  initSimulation(p);
+  setPauseButtonState(false);
+  draw();
+  startLoop();
+};
+
+$('pz').onclick = () => {
+  if (!S) return;
+  setPauseButtonState(!paused);
+};
+
+$('st').onclick = () => {
+  if (!S) $('go').click();
+  if (!S) return;                   // тохиргоо буруу байсан
+  setPauseButtonState(true);
+  tick(100);
+  draw();
+};
+
+$('rs').onclick = () => {
+  clearInterval(timer);
+  S = null;
+  $('log').innerHTML = '';
+  $('v').innerHTML = '';
+  $('tb').innerHTML = '';
+  $('dl').style.display = 'none';
+  $('err').textContent = '';
+  $('now').innerHTML = '';
+  $('codeView').innerHTML = '';
+  setPauseButtonState(false);
+  $('clk').textContent = 'Reset хийгдлээ.';
+};
+
+// Хурд шууд хэрэгжинэ (симуляцийг дахин эхлүүлэхгүй)
+$('spd').onchange = () => { if (S) S.p.spd = Number($('spd').value); };
+
+$('mode').onchange = () => {
+  updateModeUI();
+  $('go').click();
+};
+
+$('cardMon').onclick = () => {
+  $('mode').value = 'mon';
+  updateModeUI();
+  $('go').click();
+};
+
+$('cardNaive').onclick = () => {
+  $('mode').value = 'naive';
+  updateModeUI();
+  $('go').click();
+};
+
+$('ex1').onclick = () => applyPreset({ n: 5, t0: 1000, t1: 3000, e0: 1000, e1: 2000, seed: 42, spd: 1, mode: 'mon' });
+$('ex2').onclick = () => applyPreset({ n: 5, t0: 500,  t1: 500,  e0: 1000, e1: 1000, seed: 1,  spd: 2, mode: 'naive' });
+
+updateModeUI();
+$('go').click();
+</script>
+</body>
+</html>
