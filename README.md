@@ -11,17 +11,10 @@
 Шаардлага: Linux / macOS / Windows + WSL, `gcc`, `make`. UI-д зөвхөн хөтөч хэрэгтэй.
 
 ```bash
-git clone [REPOSITORY-URL] dining-philosophers
-cd dining-philosophers
-
-# 1) Хөрвүүлэх
-make
-
-# 2) Ажиллуулах: 5 philosopher, тус бүр 3 удаа идэх, thinking 100–300мс, eating 100–200мс
-./philosophers -n 5 -m 3 -t 100,300 -e 100,200 -s 42
-
-# 3) Автомат тест (45 тест)
-make test
+1. Repository-г татаж аваад (эсвэл zip-ийг задалж) src хавтсыг нээнэ. 
+2. dining_philosophers.html файл дээр хоёр товшино — хөтөч дээр нээгдэнэ. (Эсвэл 
+PowerShell-д: start src\dining_philosophers.html.) 
+3. Нээгдмэгц default тохиргоогоор (N=5, Monitor) симуляци автоматаар эхэлнэ. 
 ```
 
 Хүлээгдэх үр дүн: төгсгөлд дараах мөр гарна, `make test` нь `ALL TESTS PASSED` гэж дуусна.
