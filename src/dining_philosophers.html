@@ -25,6 +25,14 @@
       --table-wood: #282338; --table-rim: #463d63;
     }
   }
+  :root[data-theme="dark"] {
+    color-scheme: dark;
+    --bg: #131122;  --fg: #efedf9;  --mut: #9e9ab8;
+    --card: #1d1a31; --card-sub: #25213d; --bd: #353059;
+    --think-bg: rgba(99, 89, 217, .2); --hung-bg: rgba(232, 126, 24, .2);
+    --eat-bg: rgba(25, 158, 104, .2);  --bad-bg: rgba(217, 56, 56, .22);
+    --table-wood: #282338; --table-rim: #463d63;
+  }
 
   *, *::before, *::after { box-sizing: border-box; }
   html, body { height: 100%; }
@@ -37,6 +45,8 @@
     grid-template-columns: 280px minmax(0, 1fr) 360px;
     grid-template-rows: auto minmax(0, 1fr);
   }
+  .app.hide-right { grid-template-columns: 280px minmax(0, 1fr); }
+  .app.hide-right .right { display: none; }
   .card {
     background: var(--card); border: 1px solid var(--bd); border-radius: 14px;
     box-shadow: 0 2px 10px rgba(40, 30, 90, .06);
@@ -201,10 +211,13 @@
     <symbol id="ic-table" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="9" x2="9" y2="21"/></symbol>
     <symbol id="ic-terminal" viewBox="0 0 24 24"><polyline points="4 17 10 11 4 5"/><line x1="12" y1="19" x2="20" y2="19"/></symbol>
     <symbol id="ic-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></symbol>
+    <symbol id="ic-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></symbol>
+    <symbol id="ic-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"/></symbol>
+    <symbol id="ic-panel" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="15" y1="3" x2="15" y2="21"/></symbol>
   </defs>
 </svg>
 
-<div class="app">
+<div class="app" id="app">
 
   <header class="topbar">
     <svg class="ic"><use href="#ic-utensils"/></svg>
@@ -212,6 +225,8 @@
     <span class="sub">Monitor ба deadlock · F.CSM302 · V-1-11</span>
     <div class="top-right">
       <span id="clk"></span>
+      <button id="themeBtn" title="Харанхуй / Гэрэлтэй горим солих"></button>
+      <button id="rightBtn" title="Баруун самбар нуух / харуулах"></button>
       <button id="helpBtn"><svg class="ic ic-sm"><use href="#ic-info"/></svg> Тайлбар</button>
     </div>
   </header>
@@ -1049,6 +1064,30 @@ function setView(view) {
 $('viewSd').onclick = () => setView('sd');
 $('viewTable').onclick = () => setView('table');
 
+// Dark mode болон Баруун самбар нуух / харуулах
+function isDarkNow() {
+  const t = document.documentElement.dataset.theme;
+  if (t === 'dark') return true;
+  if (t === 'light') return false;
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+
+function setTheme(dark) {
+  document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  $('themeBtn').innerHTML = dark
+    ? `${icon('sun')} Гэрэлтэй`
+    : `${icon('moon')} Харанхуй`;
+  try { localStorage.setItem('dp-theme', dark ? 'dark' : 'light'); } catch (e) { /* алгасна */ }
+}
+$('themeBtn').onclick = () => setTheme(!isDarkNow());
+
+function setRightHidden(hide) {
+  $('app').classList.toggle('hide-right', hide);
+  $('rightBtn').innerHTML = `${icon('panel')} ${hide ? 'Баруун самбар нээх' : 'Баруун самбар хаах'}`;
+  try { localStorage.setItem('dp-hide-right', hide ? '1' : '0'); } catch (e) { /* алгасна */ }
+}
+$('rightBtn').onclick = () => setRightHidden(!$('app').classList.contains('hide-right'));
+
 const help = $('help');
 $('helpBtn').onclick = () => { help.hidden = false; };
 $('helpClose').onclick = () => { help.hidden = true; };
@@ -1064,8 +1103,14 @@ $('ex1').onclick = () => applyPreset({ n: 5, t0: 1000, t1: 3000, e0: 1000, e1: 2
 $('ex2').onclick = () => applyPreset({ n: 5, t0: 500,  t1: 500,  e0: 1000, e1: 1000, seed: 1,  spd: 2, mode: 'naive' });
 
 setMode('mon');
-let savedView = 'sd';
-try { savedView = localStorage.getItem('dp-view') || 'sd'; } catch (e) { /* алгасна */ }
+let savedView = 'sd', savedTheme = null, savedHideRight = false;
+try {
+  savedView = localStorage.getItem('dp-view') || 'sd';
+  savedTheme = localStorage.getItem('dp-theme');
+  savedHideRight = localStorage.getItem('dp-hide-right') === '1';
+} catch (e) { /* алгасна */ }
+setTheme(savedTheme ? savedTheme === 'dark' : isDarkNow());
+setRightHidden(savedHideRight);
 setView(savedView in VIEWS ? savedView : 'sd');
 start();
 requestAnimationFrame(animateForks);
