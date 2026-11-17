@@ -1,0 +1,22 @@
+[    0ms] P0 thinking
+[    4ms] P1 thinking
+[    4ms] P2 thinking
+[    4ms] P3 thinking
+[    4ms] P4 thinking
+[   14ms] P0 hungry
+[   14ms] P0 took left fork f0, waiting for right fork f1
+[   14ms] P1 hungry
+[   14ms] P1 took left fork f1, waiting for right fork f2
+[   14ms] P2 hungry
+[   14ms] P2 took left fork f2, waiting for right fork f3
+[   14ms] P3 hungry
+[   14ms] P3 took left fork f3, waiting for right fork f4
+[   14ms] P4 hungry
+[   14ms] P4 took left fork f4, waiting for right fork f0
+[   65ms] DEADLOCK: every philosopher holds its left fork and waits for the right one
+          P0 holds f0, waits for f1 (held by P1)
+          P1 holds f1, waits for f2 (held by P2)
+          P2 holds f2, waits for f3 (held by P3)
+          P3 holds f3, waits for f4 (held by P4)
+          P4 holds f4, waits for f0 (held by P0)
+SUMMARY n=5 meals_each=3 total=0/15 violations=0 max_concurrent_eating=0 max_wait_ms=0 elapsed_ms=65 algo=naive deadlock=yes

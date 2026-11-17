@@ -244,6 +244,14 @@
           <b><svg class="ic ic-sm"><use href="#ic-utensils"/></svg> Дугуй ширээ</b>
         </button>
       </div>
+      <div class="grid2" id="arrowRow" style="margin-top:6px">
+        <button type="button" class="tile" id="arrowOff">
+          <b>Сумгүй</b><span>fork өөрөө шилжинэ</span>
+        </button>
+        <button type="button" class="tile" id="arrowOn">
+          <b>Сумтай</b><span>холбоос ба хүлээх сум</span>
+        </button>
+      </div>
     </div>
 
     <div class="section">
@@ -305,7 +313,12 @@
     <div class="viz">
       <svg id="sd" viewBox="0 0 640 272" role="img" aria-label="Philosopher-уудын төлөвийн диаграм"></svg>
       <svg id="v" viewBox="0 0 420 420" role="img" aria-label="Дугуй ширээ ба fork">
+        <defs>
+          <marker id="arrowWait" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="var(--hung)"/></marker>
+          <marker id="arrowDead" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M 0 1 L 10 5 L 0 9 z" fill="var(--bad)"/></marker>
+        </defs>
         <g id="gBoard"></g>
+        <g id="gLinks"></g>
         <g id="gPeople"></g>
         <g id="gForks"></g>
       </svg>
@@ -317,6 +330,8 @@
       <span><i style="background:var(--eat)"></i> eating</span>
       <span>○ Сул fork</span>
       <span>● Барьсан fork</span>
+      <span class="leg-arrow">━ Барьсан холбоос</span>
+      <span class="leg-arrow">╌► Хүлээж буй сум</span>
     </div>
     <div class="person" id="person" aria-live="polite"></div>
   </main>
@@ -576,6 +591,7 @@ function layout() {
     n, big, cx, cy, angleOf, polar,
     personR: 158, nodeR: big ? 22 : 27, plateR: 82,
     plateSize: big ? 9 : 13, forkSize: big ? 10 : 12, forkFont: big ? 8.5 : 10,
+    handPos: i => polar(angleOf(i), 130),
     forkHome: k => polar(angleOf(k) - Math.PI / n, 72),
     forkInHand: (k, owner) => polar(angleOf(owner) + (k === owner ? -1 : 1) * (big ? 0.15 : 0.22), 121),
   };
@@ -627,9 +643,34 @@ function drawTable() {
   animDirty = true;
 }
 
+let showArrows = false;
+
 function drawForks(L) {
   const { n } = L;
-  let forks = '';
+  let links = '', forks = '';
+  if (showArrows) {
+    for (let k = 0; k < n; k++) {
+      const owner = S.fork[k];
+      if (owner < 0) continue;
+      const [hx, hy] = L.handPos(owner), f = forkAnim[k];
+      const col = S.dead ? 'var(--bad)' : STATE_COLOR[S.ph[owner].st];
+      links += `<line x1="${hx}" y1="${hy}" x2="${f.x}" y2="${f.y}" stroke="${col}" stroke-width="3.5" stroke-linecap="round"/>`;
+    }
+    for (let i = 0; i < n; i++) {
+      const q = S.ph[i];
+      if (q.st !== 'hungry') continue;
+      const [hx, hy] = L.handPos(i);
+      const needed = [];
+      if (!q.left) needed.push(i);
+      if (!q.right) needed.push((i + 1) % n);
+      for (const k of needed) {
+        const f = forkAnim[k], len = Math.hypot(f.x - hx, f.y - hy);
+        if (len < L.forkSize + 6) continue;
+        const stop = (L.forkSize + 3) / len;
+        links += `<line x1="${hx}" y1="${hy}" x2="${f.x - (f.x - hx) * stop}" y2="${f.y - (f.y - hy) * stop}" stroke="${S.dead ? 'var(--bad)' : 'var(--hung)'}" stroke-width="2" stroke-dasharray="4 3" marker-end="url(#${S.dead ? 'arrowDead' : 'arrowWait'})"/>`;
+      }
+    }
+  }
   for (let k = 0; k < n; k++) {
     const owner = S.fork[k], f = forkAnim[k];
     const r = L.forkSize * (1 + 0.18 * Math.min(1, f.gap / 28));
@@ -646,6 +687,7 @@ function drawForks(L) {
     const f = forkAnim[k];
     forks += `<circle cx="${f.x}" cy="${f.y}" r="${L.forkSize + 4}" fill="none" stroke="var(--fg)" stroke-width="1.5" stroke-dasharray="3 2"/>`;
   }
+  $('gLinks').innerHTML = links;
   $('gForks').innerHTML = forks;
 }
 
@@ -1023,7 +1065,7 @@ $('st').onclick = () => {
 $('rs').onclick = () => {
   clearInterval(timer);
   S = null;
-  for (const id of ['log', 'gBoard', 'gForks', 'gPeople', 'tb', 'codeView', 'person', 'sd']) $(id).innerHTML = '';
+  for (const id of ['log', 'gBoard', 'gLinks', 'gForks', 'gPeople', 'tb', 'codeView', 'person', 'sd']) $(id).innerHTML = '';
   forkAnim = [];
   chipAnim = [];
   $('dl').style.display = 'none';
@@ -1050,15 +1092,27 @@ const VIEWS = {
   table: { title: 'Дугуй ширээ',      hint: 'Fork ширээн дээр байвал сул, хүний хажууд байвал тэр хүн барьж байна. Хүн дээр дарж сонгоно.' },
 };
 
+function setArrows(on) {
+  showArrows = on;
+  $('arrowOff').classList.toggle('on', !on);
+  $('arrowOn').classList.toggle('on', on);
+  document.querySelectorAll('.leg-arrow').forEach(el => { el.style.display = on ? '' : 'none'; });
+  try { localStorage.setItem('dp-arrows', on ? '1' : '0'); } catch (e) { /* алгасна */ }
+  animDirty = true;
+}
+$('arrowOff').onclick = () => setArrows(false);
+$('arrowOn').onclick = () => setArrows(true);
+
 function setView(view) {
   $('sd').style.display = view === 'sd' ? '' : 'none';
   $('v').style.display = view === 'table' ? '' : 'none';
   $('viewTitle').textContent = VIEWS[view].title;
   $('viewHint').textContent = VIEWS[view].hint;
   $('legend').style.display = view === 'table' ? '' : 'none';
+  $('arrowRow').style.display = view === 'table' ? '' : 'none';
   $('viewSd').classList.toggle('on', view === 'sd');
   $('viewTable').classList.toggle('on', view === 'table');
-  try { localStorage.setItem('dp-view', view); } catch (e) { }
+  try { localStorage.setItem('dp-view', view); } catch (e) { /* алгасна */ }
   animDirty = true;
 }
 $('viewSd').onclick = () => setView('sd');
@@ -1103,14 +1157,16 @@ $('ex1').onclick = () => applyPreset({ n: 5, t0: 1000, t1: 3000, e0: 1000, e1: 2
 $('ex2').onclick = () => applyPreset({ n: 5, t0: 500,  t1: 500,  e0: 1000, e1: 1000, seed: 1,  spd: 2, mode: 'naive' });
 
 setMode('mon');
-let savedView = 'sd', savedTheme = null, savedHideRight = false;
+let savedView = 'sd', savedTheme = null, savedHideRight = false, savedArrows = false;
 try {
   savedView = localStorage.getItem('dp-view') || 'sd';
   savedTheme = localStorage.getItem('dp-theme');
   savedHideRight = localStorage.getItem('dp-hide-right') === '1';
+  savedArrows = localStorage.getItem('dp-arrows') === '1';
 } catch (e) { /* алгасна */ }
 setTheme(savedTheme ? savedTheme === 'dark' : isDarkNow());
 setRightHidden(savedHideRight);
+setArrows(savedArrows);
 setView(savedView in VIEWS ? savedView : 'sd');
 start();
 requestAnimationFrame(animateForks);
