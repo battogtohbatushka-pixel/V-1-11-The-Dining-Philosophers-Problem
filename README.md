@@ -35,7 +35,7 @@ make test       # 4) 63 автомат тест
 - `make test` → `ALL TESTS PASSED (63/63)`.
 
 **UI:** `src/dining_philosophers.html` файлыг хөтөч дээр нээнэ (хоёр товшино). Default тохиргоогоор (N=5, Monitor) шууд эхэлнэ.
-«⚠ 2. Гацаж байгааг харах (Naive)» товч deadlock-ийг харуулна.
+«2. Гацаж байгааг харах (Naive)» товч deadlock-ийг харуулна.
 
 ![Naive горим: бүгд зүүн сэрээгээ барьж гацсан](docs/screenshot_naive_deadlock.png)
 
