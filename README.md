@@ -1,9 +1,10 @@
 # Dining-Philosophers Problem — V-1-11
 
-**Хичээл:** F.CSM302 Үйлдлийн систем — Бие даалт 2 (final)
-**Сэдэв:** 11. The Dining-Philosophers Problem (*Operating System Concepts*, 7-р бүлэг — Synchronization Examples)
-**Хуваарилалтын код:** V-1-11
-**Repository:** https://github.com/battogtohbatushka-pixel/V-1-11-The-Dining-Philosophers-Problem
+- **Хичээл:** F.CSM302 Үйлдлийн систем — Бие даалт 2 (final)
+- **Сэдэв:** 11. The Dining-Philosophers Problem (*Operating System Concepts*, 7-р бүлэг — Synchronization Examples)
+- **Хуваарилалтын код:** V-1-11
+- **Repository:** https://github.com/battogtohbatushka-pixel/V-1-11-The-Dining-Philosophers-Problem
+- **Final release:** [`v2.0-final`](https://github.com/battogtohbatushka-pixel/V-1-11-The-Dining-Philosophers-Problem/releases/latest)
 
 ## Юу хийдэг вэ
 N philosopher дугуй ширээнд сууж, бодно → өлсөнө → иднэ. Идэхийн тулд хоёр талын сэрээ (fork) хоёулаа хэрэгтэй.
@@ -14,7 +15,8 @@ N philosopher дугуй ширээнд сууж, бодно → өлсөнө �
 | CLI (C, Pthreads) | `src/philosophers.c` | Бодит thread-ээр ажиллаж, зөв ажилласан эсэхээ өөрөө тоолж шалгана. **Monitor** (deadlock-гүй) ба **`--naive`** (deadlock үүсдэг, програм илрүүлнэ) горимтой. |
 | UI (HTML) | `src/dining_philosophers.html` | Хөтөч дээрх интерактив симулятор: төлөв, сэрээ хэн барьж байгаа, яагаад хүлээж байгааг харуулна. |
 
-![Monitor горим: P1 ба P4 идэж байна, хөрш хоёр хэзээ ч зэрэг идэхгүй](docs/screenshot_monitor.png)
+![Monitor горим (seed 42, 5.3 с): P2, P4 идэж байна; P1 хөрш P2-оо хүлээж HUNGRY төлөвт](docs/screenshot_monitor.png)
+*Monitor горим (seed 42, 5.3 с): P2, P4 идэж байна; P1 хөрш P2-оо хүлээж HUNGRY төлөвт байна.*
 
 ## Quick Start
 Шаардлага: Linux / macOS / Windows + WSL, `gcc` (эсвэл `clang`), `make`. UI-д зөвхөн хөтөч хэрэгтэй.
@@ -35,9 +37,18 @@ make test       # 4) 63 автомат тест
 - `make test` → `ALL TESTS PASSED (63/63)`.
 
 **UI:** `src/dining_philosophers.html` файлыг хөтөч дээр нээнэ (хоёр товшино). Default тохиргоогоор (N=5, Monitor) шууд эхэлнэ.
-«⚠ 2. Гацаж байгааг харах (Naive)» товч deadlock-ийг харуулна.
 
-![Naive горим: бүгд зүүн сэрээгээ барьж гацсан](docs/screenshot_naive_deadlock.png)
+| Хэсэг | Юу харуулна |
+|---|---|
+| Төлөвийн диаграм | THINKING · HUNGRY · EATING (naive-д + HOLD) хайрцагт хэн байгаа; шилжилт болоход сум тодорно |
+| Ширээ ба сэрээ | Сэрээ хэнд байгаа, гараас гарт хэрхэн дамжих (хөдөлгөөнтэй) |
+| Удирдлага | Бэлэн жишээ, алгоритм, тохиргоо; «Эхлүүлэх», «Зогсоох», «+1 алхам», «Цэвэрлэх» |
+| Сонгосон philosopher | Philosopher дээр дарвал: одоо юу хийж байгаа, дараа нь юу болох, C кодын аль мөр дээр байгаа |
+
+«Naive — гацалт» товч deadlock-ийг харуулна:
+
+![Naive горим: бүгд HOLD төлөвт — зүүн сэрээгээ барьж, баруунаа хүлээн гацсан](docs/screenshot_naive_deadlock.png)
+*Naive горим: бүгд HOLD төлөвт — зүүн сэрээгээ барьж, баруунаа хүлээн гацсан.*
 
 ## Командын сонголтууд
 | Сонголт | Утга | Default |
@@ -58,7 +69,7 @@ Log-ийн мөр бүр `[хугацаа] P<дугаар> <үйл явдал>` 
 
 | Мөр | Утга |
 |---|---|
-| `[    0ms] P0 thinking` | P0 бодож байна (эхэнд ба хоол бүрийн дараа) |
+| `[    0ms] P0 thinking` | P0 бодож байна (эхэнд, мөн сүүлийнхээс бусад хоол бүрийн дараа) |
 | `[   56ms] P2 hungry` | P2 өлсөж, сэрээ хүсэв |
 | `[   56ms] P2 eating` | P2 хоёр сэрээгээ авч идэж эхлэв (f2, f3) |
 | `[  343ms] P4 done` | P4 бүх хоолоо (`-m`) идэж дуусаад сэрээгээ тавив; thread дууслаа |
@@ -102,7 +113,8 @@ Log-ийн мөр бүр `[хугацаа] P<дугаар> <үйл явдал>` 
 | `pickup(i)` | `pickup()` — `while` давталтаар хүлээнэ (Pthreads-д spurious wakeup байдаг тул) |
 | `putdown(i)` | `putdown()` — хоёр хөршид `test()` хийнэ |
 
-Naive алгоритм ба deadlock илрүүлэлт 5-р хэсэгт, `main` 7-р хэсэгт. UI-ийн JavaScript мөн 1–5 хэсэгт хуваагдсан, ижил нэртэй функцтэй.
+Naive алгоритм ба deadlock илрүүлэлт 5-р хэсэгт, `main` 7-р хэсэгт.
+UI-ийн JavaScript «Тохиргоо унших», «Симуляцийн логик», «Зурах», «Төлөвийн диаграм», «Сэрээний хөдөлгөөн», «Удирдлага» хэсгүүдтэй. `monitorTest()` нь C-ийн `test()`-тэй ижил дүрэмтэй, deadlock-ийн нөхцөл ч ижил.
 
 ## Репозиторийн бүтэц
 ```
@@ -115,12 +127,16 @@ Naive алгоритм ба deadlock илрүүлэлт 5-р хэсэгт, `main
 │   ├── run_tests.sh           ← 63 тест
 │   └── check_log.awk          ← log-ийн дарааллыг шалгагч
 ├── examples/                  ← жишээ гаралт (make examples-аар дахин үүсгэнэ)
-└── docs/                      ← Report, Manual, дэлгэцийн зураг
+└── docs/                      ← README-ийн дэлгэцийн зургууд
 ```
 
 ## Туршсан орчин
-Ubuntu 24.04 (x86-64), gcc 13.3.0 ба clang 18.1.3 (`-Wall -Wextra` анхааруулгагүй), GNU Make 4.3, bash 5.2, Chrome.
-Гадаад сан шаардлагагүй (Pthreads нь libc-тэй хамт ирнэ).
+| Орчин | Хөрвүүлэгч | Үр дүн |
+|---|---|---|
+| Ubuntu 24.04 (x86-64) | gcc 13.3.0, clang 18.1.3 (`-Wall -Wextra` анхааруулгагүй) | 63/63 |
+| [Таны орчин: жишээ нь WSL2, Ubuntu 22.04] | [gcc хувилбар] | 63/63 |
+
+GNU Make, bash; UI: Chrome. Гадаад сан шаардлагагүй (Pthreads нь libc-тэй хамт ирнэ).
 
 ## Known issues / Хязгаарлалт
 - Monitor шийдэл deadlock-гүй боловч starvation-аас албан ёсоор хамгаалдаггүй. Тест үүнийг баталгаажуулдаггүй, зөвхөн тухайн ажиллагаанд `max_wait_ms`-ээр хэмжинэ.
