@@ -1,0 +1,12 @@
+{
+  // GitHub Codespaces: браузерт Linux терминал нээгдэнэ (gcc 13.3, clang 18.1, make).
+  // Юу ч суулгахгүй: README-ийн «Open in GitHub Codespaces» товч → терминалд make test
+  "name": "V-1-11 Dining Philosophers",
+  "image": "mcr.microsoft.com/devcontainers/cpp:noble",
+  "postCreateCommand": "make",
+  "postAttachCommand": "echo; echo 'Бэлэн! Туршихдаа:  make test  |  make run  |  make deadlock  |  make tsan'; echo",
+  "customizations": {
+    "codespaces": { "openFiles": ["README.md"] },
+    "vscode": { "extensions": ["ms-vscode.cpptools"] }
+  }
+}
